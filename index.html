@@ -51,6 +51,11 @@
     .urgent-banner {
       animation: urgentPulse 0.85s ease-in-out infinite;
     }
+    @media (max-height: 480px) {
+      .landscape-scale { transform: scale(0.76); transform-origin: center; }
+      #cam-alert-banner { padding-top: 0.4rem; padding-bottom: 0.4rem; }
+      #tl-card { transform: scale(0.86); transform-origin: bottom right; }
+    }
   </style>
 </head>
 <body id="app-body" class="h-screen w-screen overflow-hidden flex flex-col justify-between p-4 sm:p-6 transition-shadow duration-200">
@@ -79,7 +84,7 @@
     </section>
 
     <!-- Center Hero: Circular Speedometer + Circular Road Speed Limit -->
-    <div class="relative flex items-center justify-center">
+    <div class="relative flex items-center justify-center landscape-scale">
       <section id="speed-card" class="hud-glass w-64 h-64 sm:w-80 sm:h-80 rounded-full border-4 border-cyan-400/35 flex flex-col items-center justify-center text-center shadow-[0_0_50px_rgba(34,211,238,0.12)] transition-colors">
         <span id="over-pill" class="hidden mb-1 px-3 py-0.5 rounded-full bg-red-600 text-white text-xs font-black animate-pulse">🚨 超速</span>
         <span id="hud-speed" class="text-7xl sm:text-8xl font-black tabular-nums tracking-tighter text-white leading-none">--</span>
@@ -111,14 +116,14 @@
     <div id="tl-to-red" class="hidden">偵測中</div>
   </section>
 
-  <div id="toast-box" class="fixed top-14 left-1/2 -translate-x-1/2 z-50 pointer-events-none flex flex-col gap-1.5 w-[86%] max-w-xs"></div>
+  <div id="toast-box" class="fixed top-14 left-1/2 -translate-x-1/2 z-[60] pointer-events-none flex flex-col gap-1.5 w-[86%] max-w-xs"></div>
 
   <!-- Settings Modal (Contains Vehicle, Road Info, Nearest Camera, Quick Report, API, GPS, CSV) -->
   <div id="settings-modal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="hud-glass rounded-3xl w-full max-w-md p-5 flex flex-col gap-3.5 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between">
         <h2 class="text-base font-black text-white">⚙️ 設定與詳細資訊</h2>
-        <button id="close-settings" type="button" class="text-slate-400 hover:text-white font-bold text-lg">✕</button>
+        <button id="close-settings" type="button" aria-label="關閉設定" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
       </div>
 
       <!-- Current Road & Nearest Camera Info moved into Settings -->
@@ -132,7 +137,7 @@
           <span id="radar-title" class="text-rose-200 font-bold truncate">1 公里內無測速點</span>
           <span id="radar-dist" class="text-white font-black tabular-nums shrink-0">--</span>
         </div>
-        <div id="radar-sub" class="text-[10px] text-slate-400 truncate">全台測速資料載入中</div>
+        <div id="radar-sub" class="text-[10px] text-slate-400 truncate">測速資料庫就緒</div>
       </div>
 
       <div>
@@ -175,7 +180,10 @@
       </div>
 
       <div class="p-3 rounded-2xl bg-slate-900/80 border border-white/10 flex flex-col gap-2">
-        <div class="text-xs font-bold text-slate-300">外部交控 API 端點（選填，HTTPS JSON）</div>
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs font-bold text-slate-300">外部交控 API（選填 HTTPS）</span>
+          <span id="api-status" class="text-[11px] font-bold text-slate-400">未設定</span>
+        </div>
         <input id="api-endpoint" type="url" placeholder="https://your-server.tw/api/traffic-signal" class="w-full bg-slate-950 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-emerald-400" />
         <button id="btn-save-api" type="button" class="py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs">儲存並連線</button>
       </div>
@@ -237,7 +245,10 @@
         stopTarget: null,
         lastRoadFetchPos: null,
         lastSigFetchPos: null,
-        lastBeep: 0
+        lastBeep: 0,
+        heading: null,
+        wakeLock: null,
+        audioUnlocked: false
       };
 
       try {
@@ -267,6 +278,77 @@
         const dA = rad(a2 - a1), dO = rad(o2 - o1);
         const x = Math.sin(dA / 2) ** 2 + Math.cos(rad(a1)) * Math.cos(rad(a2)) * Math.sin(dO / 2) ** 2;
         return 2 * R * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+      }
+
+      function calcBearing(a1, o1, a2, o2) {
+        const rad = (d) => (d * Math.PI) / 180;
+        const y = Math.sin(rad(o2 - o1)) * Math.cos(rad(a2));
+        const x = Math.cos(rad(a1)) * Math.sin(rad(a2)) - Math.sin(rad(a1)) * Math.cos(rad(a2)) * Math.cos(rad(o2 - o1));
+        return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
+      }
+
+      function angleDiff(a, b) {
+        const d = Math.abs(a - b) % 360;
+        return d > 180 ? 360 - d : d;
+      }
+
+      function camMatchesHeading(cam, lat, lng, heading, speedKmh) {
+        if (heading === null || Number.isNaN(heading) || speedKmh === null || speedKmh < 8) return true;
+        const brgToCam = calcBearing(lat, lng, cam.lat, cam.lng);
+        if (angleDiff(heading, brgToCam) > 100) return false; // Already passed / behind vehicle
+        const dir = String(cam.dir || '');
+        if (!dir || dir.includes('雙向')) return true;
+        let targetBrg = null;
+        if (dir.includes('北上') || dir.includes('北向') || dir.includes('南往北')) targetBrg = 0;
+        else if (dir.includes('南下') || dir.includes('南向') || dir.includes('北往南')) targetBrg = 180;
+        else if (dir.includes('東向') || dir.includes('西往東')) targetBrg = 90;
+        else if (dir.includes('西向') || dir.includes('東往西')) targetBrg = 270;
+        if (targetBrg !== null && angleDiff(heading, targetBrg) > 115) return false;
+        return true;
+      }
+
+      async function fetchOverpass(query, timeoutMs) {
+        const mirrors = [
+          'https://overpass-api.de/api/interpreter',
+          'https://overpass.kumi.systems/api/interpreter'
+        ];
+        for (const base of mirrors) {
+          try {
+            const ctrl = new AbortController();
+            const t = setTimeout(() => ctrl.abort(), timeoutMs || 10000);
+            const res = await fetch(base + '?data=' + encodeURIComponent(query), { signal: ctrl.signal });
+            clearTimeout(t);
+            if (res.ok) return await res.json();
+          } catch (e) {}
+        }
+        return null;
+      }
+
+      async function requestWakeLock() {
+        try {
+          if ('wakeLock' in navigator && !st.wakeLock) {
+            st.wakeLock = await navigator.wakeLock.request('screen');
+            st.wakeLock.addEventListener('release', () => { st.wakeLock = null; });
+          }
+        } catch (e) {}
+      }
+
+      function unlockAudio() {
+        if (st.audioUnlocked) return;
+        st.audioUnlocked = true;
+        requestWakeLock();
+        try {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) {
+            if (!actx) actx = new AC();
+            if (actx.state === 'suspended') actx.resume();
+          }
+          if ('speechSynthesis' in window) {
+            const u = new SpeechSynthesisUtterance('');
+            u.volume = 0;
+            window.speechSynthesis.speak(u);
+          }
+        } catch (e) {}
       }
 
       let actx = null;
@@ -303,11 +385,10 @@
       // 1. Load Taiwan Speed Cameras from Overpass
       async function loadOverpassCameras() {
         document.getElementById('cam-count-tag').textContent = `📷 已載入 ${CAMERAS.length} 支`;
+        document.getElementById('radar-sub').textContent = `全台 ${CAMERAS.length} 支監測中`;
         try {
           const q = '[out:json][timeout:18];node["highway"="speed_camera"](21.8,119.2,25.4,122.1);out;';
-          const res = await fetch('https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(q));
-          if (!res.ok) return;
-          const data = await res.json();
+          const data = await fetchOverpass(q, 14000);
           if (data && Array.isArray(data.elements)) {
             data.elements.forEach((el) => {
               if (typeof el.lat !== 'number' || typeof el.lon !== 'number' || !inTW(el.lat, el.lon)) return;
@@ -327,9 +408,7 @@
         st.lastRoadFetchPos = [lat, lng];
         try {
           const q = `[out:json][timeout:8];way["highway"](around:60,${lat},${lng});out tags 5;`;
-          const res = await fetch('https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(q));
-          if (!res.ok) return;
-          const data = await res.json();
+          const data = await fetchOverpass(q, 8000);
           if (data && Array.isArray(data.elements) && data.elements.length > 0) {
             const withLimit = data.elements.find((w) => w.tags && w.tags.maxspeed);
             const best = withLimit || data.elements.find((w) => w.tags && (w.tags.name || w.tags.ref)) || data.elements[0];
@@ -349,9 +428,7 @@
         st.lastSigFetchPos = [lat, lng];
         try {
           const q = `[out:json][timeout:10];node["highway"="traffic_signals"](around:2500,${lat},${lng});out;`;
-          const res = await fetch('https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(q));
-          if (!res.ok) return;
-          const data = await res.json();
+          const data = await fetchOverpass(q, 9000);
           if (data && Array.isArray(data.elements)) {
             st.signals = data.elements.map((el) => ({
               id: el.id,
@@ -401,16 +478,32 @@
       }
 
       async function pollLiveApi() {
-        if (!st.apiUrl || !st.pos) return;
+        const tag = document.getElementById('api-status');
+        if (!st.apiUrl) {
+          if (tag) { tag.textContent = '未設定'; tag.className = 'text-[11px] font-bold text-slate-400'; }
+          return;
+        }
+        if (!st.pos) {
+          if (tag) { tag.textContent = '等待 GPS 座標'; tag.className = 'text-[11px] font-bold text-amber-300'; }
+          return;
+        }
         try {
           const res = await fetch(`${st.apiUrl}?lat=${st.pos[0]}&lng=${st.pos[1]}`);
-          if (!res.ok) return;
+          if (!res.ok) {
+            if (tag) { tag.textContent = `🔴 HTTP ${res.status}`; tag.className = 'text-[11px] font-bold text-rose-400'; }
+            return;
+          }
           const d = await res.json();
           if (d && typeof d.countdownSec === 'number') {
             st.liveSignal = d;
+            if (tag) { tag.textContent = '🟢 連線正常'; tag.className = 'text-[11px] font-bold text-emerald-400'; }
             renderHUD();
+          } else {
+            if (tag) { tag.textContent = '🟡 格式未含 countdownSec'; tag.className = 'text-[11px] font-bold text-amber-300'; }
           }
-        } catch (e) {}
+        } catch (e) {
+          if (tag) { tag.textContent = '🔴 連線失敗'; tag.className = 'text-[11px] font-bold text-rose-400'; }
+        }
       }
 
       function startRealGPS() {
@@ -422,22 +515,34 @@
         document.getElementById('speed-src').textContent = '🛰️ 連線衛星定位中...';
         st.watchId = navigator.geolocation.watchPosition(
           (p) => {
-            const { latitude, longitude, speed, accuracy } = p.coords;
+            const { latitude, longitude, speed, accuracy, heading } = p.coords;
             if (!inTW(latitude, longitude)) {
               st.gpsReady = false;
               document.getElementById('speed-src').textContent = '🚫 僅限台灣境內使用';
               return;
             }
+            const acc = Math.round(accuracy || 0);
+            st.gpsAcc = acc;
+            if (acc > 120) {
+              document.getElementById('speed-src').textContent = `🟡 訊號飄移 (±${acc}m)`;
+              return;
+            }
             st.gpsReady = true;
-            st.gpsAcc = Math.round(accuracy || 0);
             const now = Date.now();
             if (typeof speed === 'number' && !Number.isNaN(speed) && speed >= 0) {
               st.gpsSpeed = speed * 3.6;
-            } else if (st.lastGps && st.lastGpsT) {
+            } else if (acc <= 65 && st.lastGps && st.lastGpsT) {
               const dt = (now - st.lastGpsT) / 1000;
-              if (dt > 0.4) st.gpsSpeed = (hav(st.lastGps[0], st.lastGps[1], latitude, longitude) / dt) * 3.6;
-            } else {
+              const moved = hav(st.lastGps[0], st.lastGps[1], latitude, longitude);
+              const calcKmh = dt > 0.4 ? (moved / dt) * 3.6 : 0;
+              if (calcKmh <= 220) st.gpsSpeed = moved < 1.8 ? 0 : calcKmh;
+            } else if (st.gpsSpeed === null) {
               st.gpsSpeed = 0;
+            }
+            if (typeof heading === 'number' && !Number.isNaN(heading) && st.gpsSpeed > 5) {
+              st.heading = heading;
+            } else if (st.lastGps && hav(st.lastGps[0], st.lastGps[1], latitude, longitude) > 8) {
+              st.heading = calcBearing(st.lastGps[0], st.lastGps[1], latitude, longitude);
             }
             st.lastGps = [latitude, longitude];
             st.lastGpsT = now;
@@ -465,6 +570,7 @@
         if (st.gpsReady && st.pos) {
           const allCams = [...CAMERAS, ...st.reports.filter((r) => r.kind === 'mobile')];
           allCams.forEach((c) => {
+            if (!camMatchesHeading(c, st.pos[0], st.pos[1], st.heading, st.gpsSpeed)) return;
             const d = hav(st.pos[0], st.pos[1], c.lat, c.lng);
             if (d < minD) { minD = d; nearCam = c; }
           });
@@ -722,6 +828,12 @@
         });
       });
 
+      document.addEventListener('touchstart', unlockAudio, { once: true, passive: true });
+      document.addEventListener('click', unlockAudio, { once: true });
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') requestWakeLock();
+      });
+      requestWakeLock();
       loadOverpassCameras();
       startRealGPS();
       setInterval(() => { if (st.stopStart) renderHUD(); }, 1000);
