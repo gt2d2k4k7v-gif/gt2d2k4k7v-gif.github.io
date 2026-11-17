@@ -2,8 +2,8 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>台灣全車種即時行車 HUD v1.7</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>台灣全車種即時行車 HUD v1.9</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet" />
@@ -17,6 +17,8 @@
       background: #0b0d10;
       color: #f4f4f5;
       overflow: hidden;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
     .oem-card {
       background: #14171c;
@@ -67,17 +69,17 @@
     }
   </style>
 </head>
-<body id="app-body" class="h-screen w-screen overflow-hidden flex flex-col justify-between p-4 sm:p-6 transition-shadow duration-200">
+<body id="app-body" class="h-[100dvh] w-screen overflow-hidden flex flex-col justify-between px-4 pb-4 pt-[max(1rem,env(safe-area-inset-top))] sm:p-6 transition-shadow duration-200">
 
   <!-- Clean Top Bar -->
-  <header class="max-w-2xl w-full mx-auto flex items-center justify-between shrink-0">
+  <header class="relative z-30 max-w-2xl w-full mx-auto flex items-center justify-between gap-2 shrink-0">
     <div class="flex items-center gap-2 min-w-0">
       <span id="gps-dot" class="w-2 h-2 rounded-full bg-zinc-500 shrink-0"></span>
       <span id="speed-src" class="text-xs font-medium text-zinc-400 truncate">GPS 連線中</span>
     </div>
     <div class="flex items-center gap-2 shrink-0">
-      <button id="btn-test-panel" class="hidden" type="button" class="px-3 py-1.5 rounded-lg bg-[#1a1e26] hover:bg-[#232833] border border-[#2c323f] text-zinc-300 text-xs font-semibold">模擬測試</button>
-      <button id="btn-settings" type="button" class="px-3 py-1.5 rounded-lg bg-[#1a1e26] hover:bg-[#232833] border border-[#2c323f] text-zinc-100 text-xs font-semibold">設定</button>
+      <button id="btn-test-panel" class="hidden" type="button" class="min-h-[42px] px-3.5 py-2 rounded-xl bg-[#1a1e26] active:bg-[#2a303d] border border-[#2c323f] text-zinc-300 text-xs font-semibold cursor-pointer">模擬測試</button>
+      <button id="btn-settings" type="button" class="min-h-[42px] px-4 py-2 rounded-xl bg-[#1a1e26] active:bg-[#2a303d] border border-[#343b4a] text-zinc-100 text-sm font-bold cursor-pointer">設定</button>
     </div>
   </header>
 
@@ -302,7 +304,7 @@
       <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-white/[0.06] text-xs">
         <div class="flex items-center gap-1.5">
           <span id="cam-count-tag" class="text-zinc-400 font-medium">載入中...</span>
-          <span class="text-[10px] font-semibold text-zinc-500">v1.7</span>
+          <span class="text-[10px] font-semibold text-zinc-500">v1.9</span>
         </div>
         <div class="flex items-center gap-1.5">
           <button id="btn-update-cams" type="button" class="px-2.5 py-1.5 rounded-lg bg-zinc-200 hover:bg-white text-zinc-900 font-bold">更新測速資料庫</button>
@@ -884,25 +886,21 @@
 
       function startRealGPS() {
         if (!navigator.geolocation) {
-          document.getElementById('speed-src').textContent = '❌ 裝置不支援 GPS';
+          document.getElementById('speed-src').textContent = '裝置不支援 GPS';
           return;
         }
         if (st.watchId !== null) navigator.geolocation.clearWatch(st.watchId);
-        document.getElementById('speed-src').textContent = '🛰️ 連線衛星定位中...';
+        document.getElementById('speed-src').textContent = '衛星定位連線中...';
         st.watchId = navigator.geolocation.watchPosition(
           (p) => {
             const { latitude, longitude, speed, accuracy, heading } = p.coords;
             if (!inTW(latitude, longitude)) {
               st.gpsReady = false;
-              document.getElementById('speed-src').textContent = '🚫 僅限台灣境內使用';
+              document.getElementById('speed-src').textContent = '僅限台灣境內使用';
               return;
             }
             const acc = Math.round(accuracy || 0);
             st.gpsAcc = acc;
-            if (acc > 120) {
-              document.getElementById('speed-src').textContent = `🟡 訊號飄移 (±${acc}m)`;
-              return;
-            }
             st.gpsReady = true;
             const now = Date.now();
             if (typeof speed === 'number' && !Number.isNaN(speed) && speed >= 0) {
@@ -917,7 +915,7 @@
             }
             if (typeof heading === 'number' && !Number.isNaN(heading) && st.gpsSpeed > 5) {
               st.heading = heading;
-            } else if (st.lastGps && hav(st.lastGps[0], st.lastGps[1], latitude, longitude) > 8) {
+            } else if (acc <= 65 && st.lastGps && hav(st.lastGps[0], st.lastGps[1], latitude, longitude) > 8) {
               st.heading = calcBearing(st.lastGps[0], st.lastGps[1], latitude, longitude);
             }
             st.lastGps = [latitude, longitude];
@@ -926,15 +924,26 @@
             processGPSSignalLogic(latitude, longitude, st.gpsSpeed);
             renderHUD();
           },
-          () => {
+          (err) => {
             st.gpsReady = false;
             st.gpsSpeed = null;
-            document.getElementById('speed-src').textContent = '🔴 GPS 定位受限';
-            document.getElementById('road-title').textContent = '請於手機 HTTPS 瀏覽器開啟定位';
-            document.getElementById('road-sub').textContent = '目前預覽環境封鎖硬體定位，無法讀取真實車速與道路';
+            const dot = document.getElementById('gps-dot');
+            if (dot) dot.className = 'w-2 h-2 rounded-full bg-rose-500 shrink-0';
+            if (err && err.code === 1) {
+              document.getElementById('speed-src').textContent = '定位權限未開啟';
+              document.getElementById('road-title').textContent = '請至手機設定開啟瀏覽器位置權限';
+              document.getElementById('road-sub').textContent = 'iOS：設定 → 隱私權與安全性 → 定位服務 → Safari';
+            } else if (err && err.code === 3) {
+              document.getElementById('speed-src').textContent = '衛星定位逾時，重試中...';
+              document.getElementById('road-title').textContent = '室內訊號較弱，建議移至窗邊或室外';
+              setTimeout(() => { if (!st.simMode && !st.gpsReady) startRealGPS(); }, 2500);
+            } else {
+              document.getElementById('speed-src').textContent = '收不到 GPS 訊號';
+              document.getElementById('road-title').textContent = '請確認手機定位已開啟並移至室外';
+            }
             renderHUD();
           },
-          { enableHighAccuracy: true, maximumAge: 1000, timeout: 6000 }
+          { enableHighAccuracy: true, maximumAge: 3000, timeout: 20000 }
         );
       }
 
