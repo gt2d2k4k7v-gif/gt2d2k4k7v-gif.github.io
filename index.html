@@ -130,7 +130,7 @@
       <div id="tl-y" class="w-4 h-4 rounded-full bg-amber-950 transition-all"></div>
       <div id="tl-g" class="w-4 h-4 rounded-full bg-emerald-950 transition-all"></div>
     </div>
-    <div class="flex items-baseline justify-center gap-0.5">
+    <div id="tl-sec-wrap" class="flex items-baseline justify-center gap-0.5">
       <span id="tl-sec" class="text-xl sm:text-2xl font-extrabold tabular-nums text-white leading-none">--</span>
       <span id="tl-unit" class="text-[10px] font-semibold text-zinc-400">秒</span>
     </div>
@@ -245,6 +245,7 @@
           <button id="btn-mirror" type="button" class="py-2 px-2 rounded-lg bg-[#222732] border border-[#2f3644] text-zinc-200 font-semibold">前擋鏡像：關</button>
           <button id="btn-tl-pos" type="button" class="py-2 px-2 rounded-lg bg-[#222732] border border-[#2f3644] text-zinc-200 font-semibold">紅綠燈：右下</button>
         </div>
+        <button id="btn-tl-sec" type="button" class="w-full py-2 px-2 rounded-lg bg-[#222732] border border-[#2f3644] text-zinc-200 text-xs font-semibold">紅綠燈倒數：開</button>
         <div class="flex items-center justify-between gap-2 text-xs">
           <span id="lbl-size" class="text-zinc-400 font-medium">車速錶大小</span>
           <div class="flex gap-1">
@@ -431,6 +432,7 @@
         hudScale: 1,
         hudTheme: 'comfort',
         tlPos: 'br',
+        showTlSec: true,
         simMode: false,
         simSpeed: 58,
         simDist: 260,
@@ -462,6 +464,7 @@
           modes: { comfort: '舒服模式', jam: '塞車模式', night: '夜間護眼', sport: '運動模式' },
           mirrorOn: '前擋鏡像：開', mirrorOff: '前擋鏡像：關',
           tlBr: '紅綠燈：右下', tlBl: '紅綠燈：左下',
+          tlSecOn: '紅綠燈倒數：開', tlSecOff: '紅綠燈倒數：關',
           lblVeh: '選擇載具車種', lblRep: '路況回報（標記目前位置）',
           reps: { mobile: '流動測速', debris: '掉落物', accident: '事故', congestion: '塞車' },
           lblApi: '外部交控 API（選填 HTTPS）', saveApi: '儲存並連線', retryGps: '重新定位 GPS',
@@ -495,6 +498,7 @@
           modes: { comfort: '😌 Comfort', jam: '🚦 Traffic Jam', night: '🌙 Night Care', sport: '⚡ Sport' },
           mirrorOn: '🪞 Mirror HUD: ON', mirrorOff: '🪞 Mirror HUD: OFF',
           tlBr: '🚦 Signal: Bottom-R', tlBl: '🚦 Signal: Bottom-L',
+          tlSecOn: 'Signal Timer: ON', tlSecOff: 'Signal Timer: OFF',
           lblVeh: 'Vehicle Type', lblRep: '⚠️ Quick Road Report (Current GPS)',
           reps: { mobile: 'Mobile Cam', debris: 'Debris', accident: 'Accident', congestion: 'Traffic' },
           lblApi: 'Traffic Signal API (Optional HTTPS)', saveApi: 'Save & Connect', retryGps: '📡 Retry GPS',
@@ -528,6 +532,7 @@
           modes: { comfort: '😌 快適モード', jam: '🚦 渋滞モード', night: '🌙 夜間モード', sport: '⚡ スポーツ' },
           mirrorOn: '🪞 ミラーHUD: ON', mirrorOff: '🪞 ミラーHUD: OFF',
           tlBr: '🚦 信号: 右下', tlBl: '🚦 信号: 左下',
+          tlSecOn: '信号タイマー: ON', tlSecOff: '信号タイマー: OFF',
           lblVeh: '車両タイプ', lblRep: '⚠️ 交通状況報告（現在地）',
           reps: { mobile: '移動オービス', debris: '落下物', accident: '事故', congestion: '渋滞' },
           lblApi: '外部信号API（任意 HTTPS）', saveApi: '保存して接続', retryGps: '📡 GPS再検出',
@@ -790,6 +795,15 @@
               localStorage.setItem('tw_sig_hist', JSON.stringify(hist));
               toast(`🟢 轉綠燈起步！已記錄停等 ${waitSec} 秒`, 'ok');
             } catch (e) {}
+            if (st.apiUrl && st.apiUrl.startsWith('https://')) {
+              const h = ((Number(st.heading) || 0) % 360 + 360) % 360;
+              const dirBucket = (h >= 315 || h < 45) ? 'N' : h < 135 ? 'E' : h < 225 ? 'S' : 'W';
+              fetch(`${st.apiUrl.replace(/\/$/, '')}/signal-report`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sigId: st.stopTarget.id, dirBucket, waitSec, greenTs: Date.now(), lat, lng })
+              }).catch(() => {});
+            }
           }
           st.greenUntil = Date.now() + 4500;
           st.stopStart = null;
@@ -816,7 +830,17 @@
           return;
         }
         try {
-          const res = await fetch(`${st.apiUrl}?lat=${st.pos[0]}&lng=${st.pos[1]}`);
+          let nearSigId = '';
+          if (st.signals && st.signals.length > 0) {
+            let minS = Infinity;
+            st.signals.forEach((sg) => {
+              const dist = hav(st.pos[0], st.pos[1], sg.lat, sg.lng);
+              if (dist < minS && dist <= 800) { minS = dist; nearSigId = sg.id; }
+            });
+          }
+          const base = st.apiUrl.replace(/\/$/, '');
+          const qs = `lat=${st.pos[0]}&lng=${st.pos[1]}&hdg=${Math.round(st.heading || 0)}${nearSigId ? `&sigId=${nearSigId}` : ''}`;
+          const res = await fetch(`${base}?${qs}`);
           if (!res.ok) {
             if (tag) { tag.textContent = `🔴 HTTP ${res.status}`; tag.className = 'text-[11px] font-bold text-rose-400'; }
             return;
@@ -1206,13 +1230,14 @@
         if (ui.hudScale) st.hudScale = ui.hudScale;
         if (ui.hudTheme && THEMES[ui.hudTheme]) st.hudTheme = ui.hudTheme;
         if (ui.tlPos) st.tlPos = ui.tlPos;
+        if (typeof ui.showTlSec === 'boolean') st.showTlSec = ui.showTlSec;
       } catch (e) {}
 
       function saveUI() {
         try {
           localStorage.setItem('tw_hud_ui', JSON.stringify({
             lang: st.lang, voiceRate: st.voiceRate, hudMirror: st.hudMirror,
-            hudScale: st.hudScale, hudTheme: st.hudTheme, tlPos: st.tlPos
+            hudScale: st.hudScale, hudTheme: st.hudTheme, tlPos: st.tlPos, showTlSec: st.showTlSec
           }));
         } catch (e) {}
       }
@@ -1235,6 +1260,8 @@
         document.getElementById('lbl-size').textContent = t.lblSize;
         document.getElementById('btn-mirror').textContent = st.hudMirror ? t.mirrorOn : t.mirrorOff;
         document.getElementById('btn-tl-pos').textContent = st.tlPos === 'bl' ? t.tlBl : t.tlBr;
+        document.getElementById('btn-tl-sec').textContent = st.showTlSec ? t.tlSecOn : t.tlSecOff;
+        document.getElementById('tl-sec-wrap').classList.toggle('hidden', !st.showTlSec);
         document.getElementById('lbl-veh').textContent = t.lblVeh;
         document.getElementById('lbl-rep').textContent = t.lblRep;
         document.getElementById('lbl-api').textContent = t.lblApi;
@@ -1335,6 +1362,12 @@
 
       document.getElementById('btn-tl-pos').addEventListener('click', () => {
         st.tlPos = st.tlPos === 'br' ? 'bl' : 'br';
+        saveUI();
+        applyUI();
+      });
+
+      document.getElementById('btn-tl-sec').addEventListener('click', () => {
+        st.showTlSec = !st.showTlSec;
         saveUI();
         applyUI();
       });
