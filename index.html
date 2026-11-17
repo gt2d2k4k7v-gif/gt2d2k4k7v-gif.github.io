@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>台灣全車種即時行車 HUD</title>
+  <title>台灣全車種即時行車 HUD v1.7</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet" />
@@ -180,7 +180,7 @@
     </div>
   </section>
 
-  <div id="toast-box" class="fixed top-14 left-1/2 -translate-x-1/2 z-[60] pointer-events-none flex flex-col gap-1.5 w-[86%] max-w-xs"></div>
+  <div id="toast-box" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-[60] pointer-events-none flex flex-col gap-1.5 w-[86%] max-w-xs"></div>
 
   <!-- Settings Modal (Clean Automotive / iOS Grouped Style) -->
   <div id="settings-modal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
@@ -299,21 +299,27 @@
         <button id="btn-clear-priv" type="button" class="py-2 rounded-lg bg-[#1d222b] border border-[#3f292d] text-rose-300 text-xs font-semibold">清除本機位置紀錄</button>
       </div>
 
-      <div class="flex items-center justify-between gap-2 pt-2 border-t border-white/[0.06] text-xs">
-        <span id="cam-count-tag" class="text-zinc-400 font-medium">載入中...</span>
-        <label class="px-3 py-1.5 rounded-lg bg-[#1d222b] hover:bg-[#272d38] border border-[#2f3644] text-zinc-200 font-semibold cursor-pointer">
-          <span id="lbl-import">匯入警政 CSV/JSON</span>
-          <input id="csv-file" type="file" accept=".csv,.json" class="hidden" />
-        </label>
+      <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-white/[0.06] text-xs">
+        <div class="flex items-center gap-1.5">
+          <span id="cam-count-tag" class="text-zinc-400 font-medium">載入中...</span>
+          <span class="text-[10px] font-semibold text-zinc-500">v1.7</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button id="btn-update-cams" type="button" class="px-2.5 py-1.5 rounded-lg bg-zinc-200 hover:bg-white text-zinc-900 font-bold">更新測速資料庫</button>
+          <label class="px-2.5 py-1.5 rounded-lg bg-[#1d222b] hover:bg-[#272d38] border border-[#2f3644] text-zinc-200 font-semibold cursor-pointer">
+            <span id="lbl-import">匯入 CSV</span>
+            <input id="csv-file" type="file" accept=".csv,.json" class="hidden" />
+          </label>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Illustrated User Manual Modal -->
   <div id="manual-modal" class="hidden fixed inset-0 z-[55] bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="hud-glass rounded-3xl w-full max-w-lg p-5 flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between">
-        <h2 id="man-title" class="text-base font-black text-white">📖 台灣全車種 HUD 圖文教學手冊</h2>
+    <div class="bg-[#111318] border border-[#262b34] rounded-2xl w-full max-w-lg px-5 pb-5 pt-0 flex flex-col gap-4 max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div class="sticky top-0 z-10 bg-[#111318] pt-4 pb-2.5 border-b border-white/[0.06] flex items-center justify-between">
+        <h2 id="man-title" class="text-base font-bold text-white">使用說明與圖解</h2>
         <button id="close-manual" type="button" aria-label="關閉手冊" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
       </div>
 
@@ -466,9 +472,10 @@
           tlBr: '紅綠燈：右下', tlBl: '紅綠燈：左下',
           tlSecOn: '紅綠燈倒數：開', tlSecOff: '紅綠燈倒數：關',
           lblVeh: '選擇載具車種', lblRep: '路況回報（標記目前位置）',
+          vehs: { taxi: '多元化', car: '小客車', scooter: '白牌機車', heavy_moto: '黃紅牌', truck: '大貨車', bike: '自行車' }, clearPriv: '清除本機位置紀錄',
           reps: { mobile: '流動測速', debris: '掉落物', accident: '事故', congestion: '塞車' },
           lblApi: '外部交控 API（選填 HTTPS）', saveApi: '儲存並連線', retryGps: '重新定位 GPS',
-          lblImport: '匯入警政 CSV/JSON', manTitle: '使用說明與圖解',
+          lblImport: '匯入 CSV', updCams: '更新測速資料庫', manTitle: '使用說明與圖解',
           simTitle: '路線模擬測試', simOn: '模擬中', simOff: '真實 GPS',
           simSpd: '車速', simDist: '距照相',
           simTls: { green: '🟢 綠燈', red: '🔴 紅燈', yellow: '🟡 預警', go: '🚀 GO' },
@@ -488,28 +495,30 @@
           speakWarn: (d, l) => `前方 ${d} 公尺測速照相，請於前 20 公尺減速至 ${l} 公里`
         },
         'en-US': {
-          setBtn: '⚙️ Settings', testBtn: '🧪 Test', manualBtn: '📖 Guide',
-          setTitle: '⚙️ Settings & Customize', waitGps: '🛰️ Waiting GPS...', gpsOk: '🟢 Live GPS Active',
-          simSrc: '🧪 Simulation Mode', gpsOff: '🔴 GPS Restricted', over: '🚨 OVERSPEED', limit: 'LIMIT', secUnit: 's',
-          lblLang: '🌐 Language & Voice', lblRate: 'Rate', testSound: '🔔 Test Audio',
-          voiceOn: '🔊 Voice: ON', voiceOff: '🔇 Voice: OFF',
-          lblUi: '🎨 Interface Mode & Layout', lblTheme: 'Interface Mode', lblSize: 'Gauge Size',
+          setBtn: 'Settings', testBtn: 'Test', manualBtn: 'Guide',
+          setTitle: 'Settings', waitGps: 'Waiting GPS', gpsOk: 'GPS Active',
+          simSrc: 'Simulation', gpsOff: 'GPS Restricted', over: 'OVERSPEED', limit: 'LIMIT', secUnit: 's',
+          lblLang: 'Language', lblRate: 'Rate', testSound: 'Test Audio',
+          voiceOn: 'Voice: ON', voiceOff: 'Voice: OFF',
+          lblUi: 'Display & Mode', lblTheme: 'Interface Mode', lblSize: 'Gauge Size',
           sizes: ['S', 'M', 'L'],
-          modes: { comfort: '😌 Comfort', jam: '🚦 Traffic Jam', night: '🌙 Night Care', sport: '⚡ Sport' },
-          mirrorOn: '🪞 Mirror HUD: ON', mirrorOff: '🪞 Mirror HUD: OFF',
-          tlBr: '🚦 Signal: Bottom-R', tlBl: '🚦 Signal: Bottom-L',
+          modes: { comfort: 'Comfort', jam: 'Traffic Jam', night: 'Night Care', sport: 'Sport' },
+          mirrorOn: 'Mirror HUD: ON', mirrorOff: 'Mirror HUD: OFF',
+          tlBr: 'Signal: Bottom-R', tlBl: 'Signal: Bottom-L',
           tlSecOn: 'Signal Timer: ON', tlSecOff: 'Signal Timer: OFF',
-          lblVeh: 'Vehicle Type', lblRep: '⚠️ Quick Road Report (Current GPS)',
+          lblVeh: 'Vehicle Type', lblRep: 'Road Report (Current GPS)',
+          vehs: { taxi: 'Taxi / Rideshare', car: 'Car', scooter: 'Scooter', heavy_moto: 'Heavy Moto', truck: 'Truck', bike: 'Bicycle' },
           reps: { mobile: 'Mobile Cam', debris: 'Debris', accident: 'Accident', congestion: 'Traffic' },
-          lblApi: 'Traffic Signal API (Optional HTTPS)', saveApi: 'Save & Connect', retryGps: '📡 Retry GPS',
-          lblImport: '📂 Import CSV/JSON', manTitle: '📖 Taiwan HUD Illustrated Guide',
-          simTitle: '🧪 Simulator Panel', simOn: 'Sim: ON', simOff: 'Real GPS',
+          lblApi: 'Traffic / TDX API (HTTPS)', saveApi: 'Save & Connect', retryGps: 'Retry GPS',
+          clearPriv: 'Clear Local Data',
+          lblImport: 'Import CSV', updCams: 'Update Cameras', manTitle: 'User Guide',
+          simTitle: 'Route Simulator', simOn: 'Sim ON', simOff: 'Real GPS',
           simSpd: 'Speed', simDist: 'Cam Dist',
-          simTls: { green: '🟢 Green', red: '🔴 Red', yellow: '🟡 Warn', go: '🚀 GO' },
-          tlRed: '🔴 Red Stop', tlRedCd: '🔴 Red Wait', tlYel: '🟡 Yellow', tlSoonGrn: '🟡 Green Soon',
-          tlGrn: '🟢 Green Go', tlGo: '🟢 Just Green', tlMon: '🟢 Signal', tlGps: '🚦 Signal',
+          simTls: { green: 'Green', red: 'Red', yellow: 'Yellow', go: 'GO' },
+          tlRed: 'Red Stop', tlRedCd: 'Red Wait', tlYel: 'Yellow', tlSoonGrn: 'Green Soon',
+          tlGrn: 'Green Go', tlGo: 'Just Green', tlMon: 'Signal', tlGps: 'Signal',
           camCritTitle: (r) => `BRAKE NOW! ${r}m to 20m line`,
-          camCritSub: (s, l, n) => `${s} km/h → Limit ${l} (Need ${n}m to slow)`,
+          camCritSub: (s, l, n) => `${s} km/h -> Limit ${l} (Need ${n}m)`,
           camCritBadge: (d) => `Cam ${d}m`,
           camWarnTitle: (d) => `Camera ${d}m | Safe Slowdown`,
           camWarnSub: (l, n, r) => `Slow to ${l} km/h (Need ${n}m / ${r}m left)`,
@@ -522,26 +531,28 @@
           speakWarn: (d, l) => `Speed camera in ${d} meters, slow to ${l} before 20 meters`
         },
         'ja-JP': {
-          setBtn: '設定', testBtn: '🧪 テスト', manualBtn: '📖 ガイド',
-          setTitle: '⚙️ 設定と画面カスタマイズ', waitGps: '🛰️ GPS待機中...', gpsOk: '🟢 GPS測位中',
-          simSrc: '🧪 テストモード', gpsOff: '🔴 GPS制限', over: '🚨 速度超過', limit: '制限', secUnit: '秒',
-          lblLang: '🌐 言語と音声設定', lblRate: '話速', testSound: '🔔 音声テスト',
-          voiceOn: '🔊 音声: ON', voiceOff: '🔇 音声: OFF',
-          lblUi: '🎨 画面モード・レイアウト', lblTheme: '画面モード', lblSize: 'メーターサイズ',
+          setBtn: '設定', testBtn: 'テスト', manualBtn: 'ガイド',
+          setTitle: 'システム設定', waitGps: 'GPS待機中', gpsOk: 'GPS測位中',
+          simSrc: '模擬走行中', gpsOff: 'GPS制限', over: '速度超過', limit: '制限', secUnit: '秒',
+          lblLang: '言語', lblRate: '話速', testSound: '音声テスト',
+          voiceOn: '音声：ON', voiceOff: '音声：OFF',
+          lblUi: '画面モード・表示設定', lblTheme: '画面モード', lblSize: 'メーターサイズ',
           sizes: ['小', '中', '大'],
-          modes: { comfort: '😌 快適モード', jam: '🚦 渋滞モード', night: '🌙 夜間モード', sport: '⚡ スポーツ' },
-          mirrorOn: '🪞 ミラーHUD: ON', mirrorOff: '🪞 ミラーHUD: OFF',
-          tlBr: '🚦 信号: 右下', tlBl: '🚦 信号: 左下',
-          tlSecOn: '信号タイマー: ON', tlSecOff: '信号タイマー: OFF',
-          lblVeh: '車両タイプ', lblRep: '⚠️ 交通状況報告（現在地）',
+          modes: { comfort: '快適モード', jam: '渋滞モード', night: '夜間モード', sport: 'スポーツ' },
+          mirrorOn: 'ミラーHUD：ON', mirrorOff: 'ミラーHUD：OFF',
+          tlBr: '信号：右下', tlBl: '信号：左下',
+          tlSecOn: '信号タイマー：ON', tlSecOff: '信号タイマー：OFF',
+          lblVeh: '車両タイプ', lblRep: '交通状況報告（現在地）',
+          vehs: { taxi: 'タクシー', car: '乗用車', scooter: '原付・スクーター', heavy_moto: '大型二輪', truck: 'トラック', bike: '自転車' },
           reps: { mobile: '移動オービス', debris: '落下物', accident: '事故', congestion: '渋滞' },
-          lblApi: '外部信号API（任意 HTTPS）', saveApi: '保存して接続', retryGps: '📡 GPS再検出',
-          lblImport: '📂 CSV/JSON読込', manTitle: '📖 台湾HUD 図解マニュアル',
-          simTitle: '🧪 テストシミュレーター', simOn: '模擬: ON', simOff: '実GPS',
+          lblApi: '外部信号・TDX API (HTTPS)', saveApi: '保存して接続', retryGps: 'GPS再測位',
+          clearPriv: '履歴を削除',
+          lblImport: 'CSV読込', updCams: 'オービス更新', manTitle: '操作ガイド',
+          simTitle: '走行シミュレーター', simOn: '模擬中', simOff: '実GPS',
           simSpd: '車速', simDist: '距離',
-          simTls: { green: '🟢 青', red: '🔴 赤', yellow: '🟡 黄', go: '🚀 発進' },
-          tlRed: '🔴 赤信号停止', tlRedCd: '🔴 赤信号待ち', tlYel: '🟡 黄信号注意', tlSoonGrn: '🟡 まもなく青',
-          tlGrn: '🟢 青信号通行', tlGo: '🟢 青に変化', tlMon: '🟢 信号監視', tlGps: '🚦 GPS信号',
+          simTls: { green: '青', red: '赤', yellow: '黄', go: '発進' },
+          tlRed: '赤信号停止', tlRedCd: '赤信号待ち', tlYel: '黄信号注意', tlSoonGrn: 'まもなく青',
+          tlGrn: '青信号通行', tlGo: '青に変化', tlMon: '信号監視', tlGps: '信号',
           camCritTitle: (r) => `急減速！20m手前まで残 ${r}m`,
           camCritSub: (s, l, n) => `現在 ${s} km/h → 制限 ${l}（減速必要 ${n}m）`,
           camCritBadge: (d) => `残 ${d}m`,
@@ -587,6 +598,11 @@
       try {
         const savedApi = localStorage.getItem('tw_hud_api');
         if (savedApi && savedApi.startsWith('https://')) st.apiUrl = savedApi;
+        const syncedCams = JSON.parse(localStorage.getItem('tw_hud_cams_synced') || 'null');
+        if (Array.isArray(syncedCams) && syncedCams.length > 0) {
+          CAMERAS.length = 0;
+          syncedCams.forEach((c) => { if (inTW(c.lat, c.lng)) CAMERAS.push(c); });
+        }
         const savedCams = JSON.parse(localStorage.getItem('tw_hud_cams') || '[]');
         if (Array.isArray(savedCams)) {
           savedCams.forEach((c) => {
@@ -1268,6 +1284,7 @@
         document.getElementById('btn-save-api').textContent = t.saveApi;
         document.getElementById('btn-retry-gps').textContent = t.retryGps;
         document.getElementById('lbl-import').textContent = t.lblImport;
+        if (t.updCams) document.getElementById('btn-update-cams').textContent = t.updCams;
         document.getElementById('man-title').textContent = t.manTitle;
         document.getElementById('lbl-sim-title').textContent = t.simTitle;
         document.getElementById('lbl-sim-spd').textContent = t.simSpd;
@@ -1277,9 +1294,13 @@
 
         document.querySelectorAll('.r-btn').forEach((b) => {
           const k = b.getAttribute('data-r');
-          const lbl = b.querySelector('div:last-child');
-          if (lbl && t.reps[k]) lbl.textContent = t.reps[k];
+          if (t.reps[k]) b.textContent = t.reps[k];
         });
+        document.querySelectorAll('.v-btn').forEach((b) => {
+          const k = b.getAttribute('data-v');
+          if (t.vehs && t.vehs[k]) b.textContent = t.vehs[k];
+        });
+        if (t.clearPriv) document.getElementById('btn-clear-priv').textContent = t.clearPriv;
         document.querySelectorAll('.sim-tl-btn').forEach((b) => {
           const k = b.getAttribute('data-tl');
           if (t.simTls[k]) b.textContent = t.simTls[k];
@@ -1393,6 +1414,37 @@
       document.getElementById('close-manual').addEventListener('click', () => mm.classList.add('hidden'));
 
       applyUI();
+
+      document.getElementById('btn-update-cams').addEventListener('click', async function () {
+        if (!st.apiUrl || !st.apiUrl.startsWith('https://')) {
+          toast('請先填寫並儲存 Cloudflare Worker API 網址', 'warn');
+          return;
+        }
+        const btn = this;
+        const prevTxt = btn.textContent;
+        btn.textContent = '更新中...';
+        btn.disabled = true;
+        try {
+          const res = await fetch(`${st.apiUrl.replace(/\/$/, '')}/cameras`);
+          const d = await res.json();
+          if (d && d.ok && Array.isArray(d.cameras) && d.cameras.length > 0) {
+            CAMERAS.length = 0;
+            d.cameras.forEach((c) => { if (inTW(c.lat, c.lng)) CAMERAS.push(c); });
+            try { localStorage.setItem('tw_hud_cams_synced', JSON.stringify(CAMERAS)); } catch (e) {}
+            document.getElementById('cam-count-tag').textContent = `已載入 ${CAMERAS.length} 支`;
+            document.getElementById('radar-sub').textContent = `全台 ${CAMERAS.length} 支監測中`;
+            toast(`已自動更新共 ${CAMERAS.length} 支測速照相`, 'ok');
+            renderHUD();
+          } else {
+            toast('Worker 尚未設定 CAMERAS_CSV_URL 變數', 'warn');
+          }
+        } catch (e) {
+          toast('更新失敗，請檢查網路或 Worker 網址', 'err');
+        } finally {
+          btn.textContent = prevTxt;
+          btn.disabled = false;
+        }
+      });
 
       document.getElementById('csv-file').addEventListener('change', (e) => {
         const f = e.target.files && e.target.files[0];
