@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>台灣全車種即時行車 HUD v1.9</title>
+  <title>台灣全車種即時行車 HUD v1.16</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet" />
@@ -79,6 +79,8 @@
     </div>
     <div class="flex items-center gap-2 shrink-0">
       <button id="btn-test-panel" class="hidden" type="button" class="min-h-[42px] px-3.5 py-2 rounded-xl bg-[#1a1e26] active:bg-[#2a303d] border border-[#2c323f] text-zinc-300 text-xs font-semibold cursor-pointer">模擬測試</button>
+      <button id="btn-log-speed" type="button" class="min-h-[42px] px-3 py-2 rounded-xl bg-[#1a1e26] active:bg-[#2a303d] border border-[#2c323f] text-emerald-300 text-xs font-bold cursor-pointer">記車速</button>
+      <button id="btn-view-logs" type="button" class="min-h-[42px] px-3 py-2 rounded-xl bg-[#1a1e26] active:bg-[#2a303d] border border-[#2c323f] text-zinc-200 text-xs font-bold cursor-pointer">紀錄</button>
       <button id="btn-settings" type="button" class="min-h-[42px] px-4 py-2 rounded-xl bg-[#1a1e26] active:bg-[#2a303d] border border-[#343b4a] text-zinc-100 text-sm font-bold cursor-pointer">設定</button>
     </div>
   </header>
@@ -104,7 +106,7 @@
     <div id="hud-gauge-wrap" class="relative flex items-center justify-center landscape-scale transition-transform">
       <section id="speed-card" class="oem-card relative w-64 h-64 sm:w-80 sm:h-80 rounded-full border-2 border-[#2a303c] flex flex-col items-center justify-center text-center transition-colors overflow-hidden">
         <svg viewBox="0 0 220 220" class="absolute inset-0 w-full h-full pointer-events-none">
-          <circle cx="110" cy="110" r="96" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="8" stroke-dasharray="452 604" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(135 110 110)"/>
+          <circle id="gauge-track" cx="110" cy="110" r="96" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="8" stroke-dasharray="452 604" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(135 110 110)"/>
           <circle cx="110" cy="110" r="85" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1.5" stroke-dasharray="1.5 11" transform="rotate(135 110 110)"/>
           <circle id="gauge-arc" cx="110" cy="110" r="96" fill="none" stroke="#e4e4e7" stroke-width="8" stroke-dasharray="452 604" stroke-dashoffset="452" stroke-linecap="round" transform="rotate(135 110 110)"/>
         </svg>
@@ -229,6 +231,19 @@
           <span id="lbl-rate" class="text-zinc-400 font-medium shrink-0">播報語速 <span id="rate-val" class="text-zinc-100 font-bold">1.1x</span></span>
           <input id="voice-rate" type="range" min="0.8" max="1.5" step="0.1" value="1.1" class="w-full accent-zinc-200" />
         </div>
+        <div class="flex items-center justify-between gap-3 text-xs">
+          <span id="lbl-vol" class="text-zinc-400 font-medium shrink-0">警示音量 <span id="vol-val" class="text-zinc-100 font-bold">80%</span></span>
+          <input id="sound-vol" type="range" min="0.1" max="1.0" step="0.1" value="0.8" class="w-full accent-zinc-200" />
+        </div>
+        <div class="flex flex-col gap-1.5 text-xs pt-1 border-t border-white/[0.06]">
+          <span id="lbl-over-mode" class="text-zinc-400 font-medium">超速提醒聲音</span>
+          <div class="grid grid-cols-4 gap-1">
+            <button data-om="both" type="button" class="om-btn py-1.5 px-1 rounded-lg bg-zinc-200 text-zinc-900 text-[10px] font-bold">語音+提示</button>
+            <button data-om="beep" type="button" class="om-btn py-1.5 px-1 rounded-lg bg-[#222732] text-zinc-300 text-[10px] font-semibold">僅提示音</button>
+            <button data-om="voice" type="button" class="om-btn py-1.5 px-1 rounded-lg bg-[#222732] text-zinc-300 text-[10px] font-semibold">僅語音</button>
+            <button data-om="silent" type="button" class="om-btn py-1.5 px-1 rounded-lg bg-[#222732] text-zinc-300 text-[10px] font-semibold">僅畫面</button>
+          </div>
+        </div>
       </div>
 
       <!-- Interface Mode & Layout -->
@@ -304,7 +319,7 @@
       <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-white/[0.06] text-xs">
         <div class="flex items-center gap-1.5">
           <span id="cam-count-tag" class="text-zinc-400 font-medium">載入中...</span>
-          <span class="text-[10px] font-semibold text-zinc-500">v1.9</span>
+          <span class="text-[10px] font-semibold text-zinc-500">v1.16</span>
         </div>
         <div class="flex items-center gap-1.5">
           <button id="btn-update-cams" type="button" class="px-2.5 py-1.5 rounded-lg bg-zinc-200 hover:bg-white text-zinc-900 font-bold">更新測速資料庫</button>
@@ -388,6 +403,22 @@
     </div>
   </div>
 
+  <!-- Pass Speed Log Modal -->
+  <div id="log-modal" class="hidden fixed inset-0 z-[55] bg-black/85 flex items-center justify-center p-4">
+    <div class="bg-[#111318] border border-[#262b34] rounded-2xl w-full max-w-md px-5 pb-5 pt-0 flex flex-col gap-3 max-h-[85vh] overflow-y-auto shadow-2xl">
+      <div class="sticky top-0 z-10 bg-[#111318] pt-4 pb-2.5 border-b border-white/[0.06] flex items-center justify-between gap-2">
+        <h2 id="log-title" class="text-base font-bold text-white">通過車速紀錄</h2>
+        <div class="flex items-center gap-2">
+          <button id="btn-clear-logs" type="button" class="px-2.5 py-1 rounded-lg bg-[#1d222b] border border-[#3f292d] text-rose-300 text-xs font-semibold">清空</button>
+          <button id="close-logs" type="button" aria-label="關閉紀錄" class="p-1.5 rounded-lg text-zinc-400 hover:text-white"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+        </div>
+      </div>
+      <div id="log-list" class="flex flex-col gap-2 text-xs">
+        <div class="text-zinc-500 text-center py-6">尚無通過紀錄（通過測速點 25m 內自動記錄，或點擊上方「記車速」手動記錄）</div>
+      </div>
+    </div>
+  </div>
+
   <script>
     (function () {
       'use strict';
@@ -425,17 +456,26 @@
         liveSignal: null,
         roadName: null,
         roadLimit: null,
+        rememberedRoadName: null,
+        rememberedRoadLimit: null,
         signals: [],
         stopStart: null,
         stopTarget: null,
         lastRoadFetchPos: null,
         lastSigFetchPos: null,
         lastBeep: 0,
+        announcedCamKey: null,
+        announcedCamLevel: null,
+        autoLoggedCamKey: null,
+        passLogs: [],
+        lastOverSpeak: 0,
         heading: null,
         wakeLock: null,
         audioUnlocked: false,
         lang: 'zh-TW',
         voiceRate: 1.1,
+        soundVol: 0.8,
+        overMode: 'both',
         hudMirror: false,
         hudScale: 1,
         hudTheme: 'comfort',
@@ -462,10 +502,10 @@
 
       const I18N = {
         'zh-TW': {
-          setBtn: '設定', testBtn: '模擬測試', manualBtn: '使用說明',
+          setBtn: '設定', logBtn: '記車速', logsBtn: '紀錄', logTitle: '通過車速紀錄', clearLogs: '清空', testBtn: '模擬測試', manualBtn: '使用說明',
           setTitle: '系統設定', waitGps: '等待 GPS', gpsOk: 'GPS 已定位',
           simSrc: '模擬行駛中', gpsOff: 'GPS 受限', over: '超速', limit: '速限', secUnit: '秒',
-          lblLang: '語言', lblRate: '語速', testSound: '試音測試',
+          lblLang: '語言', lblRate: '語速', lblVol: '警示音量', lblOverMode: '超速提醒聲音', omModes: { both: '語音+提示', beep: '僅提示音', voice: '僅語音', silent: '僅畫面' }, testSound: '試音測試',
           voiceOn: '語音：開', voiceOff: '語音：關',
           lblUi: '顯示與介面模式', lblTheme: '介面模式', lblSize: '車速錶大小',
           sizes: ['小', '中', '大'],
@@ -483,24 +523,24 @@
           simTls: { green: '🟢 綠燈', red: '🔴 紅燈', yellow: '🟡 預警', go: '🚀 GO' },
           tlRed: '紅燈停等', tlRedCd: '紅燈倒數', tlYel: '黃燈變換', tlSoonGrn: '即將轉綠',
           tlGrn: '綠燈通行', tlGo: '剛轉綠燈', tlMon: '號誌監測', tlGps: '號誌',
-          camCritTitle: (r) => `立即減速！距前20m剩 ${r}m`,
-          camCritSub: (s, l, n) => `目前 ${s} km/h → 速限 ${l}（安全減速需 ${n}m）`,
-          camCritBadge: (d) => `距照相 ${d}m`,
-          camWarnTitle: (d) => `前方測速 ${d}m｜前20m可安全減速`,
-          camWarnSub: (l, n, r) => `請減速至 ${l} km/h（需 ${n}m / 剩 ${r}m）`,
-          camWarnBadge: '請減速',
-          camSafeTitle: (d) => `前方測速 ${d}m｜前20m安全通過`,
-          camSafeBadge: '安全通過',
+          camCritTitle: (r, d) => `急減速！測速 ${d}m`,
+          camCritSub: (s, l, n) => `${s} → 限 ${l}（前20m）`,
+          camCritBadge: (d) => `距 ${d}m`,
+          camWarnTitle: (d) => `測速 ${d}m · 請減速`,
+          camWarnSub: (l, n, r) => `限 ${l} · 剩 ${r}m`,
+          camWarnBadge: '減速',
+          camSafeTitle: (d) => `測速 ${d}m · 安全`,
+          camSafeBadge: '通過',
           testPhrase: '試音成功，前方 150 公尺測速照相，請於前 20 公尺減速至 60 公里',
           speakOver: (l) => `注意，您已超速，速限 ${l} 公里`,
           speakCrit: (d, l) => `緊急減速，前方 ${d} 公尺測速照相，速限 ${l} 公里`,
           speakWarn: (d, l) => `前方 ${d} 公尺測速照相，請於前 20 公尺減速至 ${l} 公里`
         },
         'en-US': {
-          setBtn: 'Settings', testBtn: 'Test', manualBtn: 'Guide',
+          setBtn: 'Settings', logBtn: 'Log Speed', logsBtn: 'Logs', logTitle: 'Passing Speed Logs', clearLogs: 'Clear', testBtn: 'Test', manualBtn: 'Guide',
           setTitle: 'Settings', waitGps: 'Waiting GPS', gpsOk: 'GPS Active',
           simSrc: 'Simulation', gpsOff: 'GPS Restricted', over: 'OVERSPEED', limit: 'LIMIT', secUnit: 's',
-          lblLang: 'Language', lblRate: 'Rate', testSound: 'Test Audio',
+          lblLang: 'Language', lblRate: 'Rate', lblVol: 'Volume', lblOverMode: 'Overspeed Sound', omModes: { both: 'Voice+Beep', beep: 'Beep Only', voice: 'Voice Only', silent: 'Visual Only' }, testSound: 'Test Audio',
           voiceOn: 'Voice: ON', voiceOff: 'Voice: OFF',
           lblUi: 'Display & Mode', lblTheme: 'Interface Mode', lblSize: 'Gauge Size',
           sizes: ['S', 'M', 'L'],
@@ -519,24 +559,24 @@
           simTls: { green: 'Green', red: 'Red', yellow: 'Yellow', go: 'GO' },
           tlRed: 'Red Stop', tlRedCd: 'Red Wait', tlYel: 'Yellow', tlSoonGrn: 'Green Soon',
           tlGrn: 'Green Go', tlGo: 'Just Green', tlMon: 'Signal', tlGps: 'Signal',
-          camCritTitle: (r) => `BRAKE NOW! ${r}m to 20m line`,
-          camCritSub: (s, l, n) => `${s} km/h -> Limit ${l} (Need ${n}m)`,
-          camCritBadge: (d) => `Cam ${d}m`,
-          camWarnTitle: (d) => `Camera ${d}m | Safe Slowdown`,
-          camWarnSub: (l, n, r) => `Slow to ${l} km/h (Need ${n}m / ${r}m left)`,
-          camWarnBadge: 'SLOW DOWN',
-          camSafeTitle: (d) => `Camera ${d}m | Safe Pass (20m)`,
-          camSafeBadge: 'SAFE',
+          camCritTitle: (r, d) => `BRAKE! Cam ${d}m`,
+          camCritSub: (s, l, n) => `${s} -> Limit ${l}`,
+          camCritBadge: (d) => `${d}m`,
+          camWarnTitle: (d) => `Cam ${d}m · Slow`,
+          camWarnSub: (l, n, r) => `Limit ${l} · ${r}m`,
+          camWarnBadge: 'SLOW',
+          camSafeTitle: (d) => `Cam ${d}m · Safe`,
+          camSafeBadge: 'PASS',
           testPhrase: 'Audio test ready. Speed camera in 150 meters, slow down to 60 before 20 meters.',
           speakOver: (l) => `Overspeed warning, limit ${l}`,
           speakCrit: (d, l) => `Brake now, speed camera in ${d} meters, limit ${l}`,
           speakWarn: (d, l) => `Speed camera in ${d} meters, slow to ${l} before 20 meters`
         },
         'ja-JP': {
-          setBtn: '設定', testBtn: 'テスト', manualBtn: 'ガイド',
+          setBtn: '設定', testBtn: 'テスト', logBtn: '速度記録', logsBtn: '履歴', logTitle: '通過速度履歴', clearLogs: '消去', manualBtn: 'ガイド',
           setTitle: 'システム設定', waitGps: 'GPS待機中', gpsOk: 'GPS測位中',
           simSrc: '模擬走行中', gpsOff: 'GPS制限', over: '速度超過', limit: '制限', secUnit: '秒',
-          lblLang: '言語', lblRate: '話速', testSound: '音声テスト',
+          lblLang: '言語', lblRate: '話速', lblVol: '音量', lblOverMode: '速度超過アラーム', omModes: { both: '音声+音', beep: '警告音のみ', voice: '音声のみ', silent: '画面のみ' }, testSound: '音声テスト',
           voiceOn: '音声：ON', voiceOff: '音声：OFF',
           lblUi: '画面モード・表示設定', lblTheme: '画面モード', lblSize: 'メーターサイズ',
           sizes: ['小', '中', '大'],
@@ -555,14 +595,14 @@
           simTls: { green: '青', red: '赤', yellow: '黄', go: '発進' },
           tlRed: '赤信号停止', tlRedCd: '赤信号待ち', tlYel: '黄信号注意', tlSoonGrn: 'まもなく青',
           tlGrn: '青信号通行', tlGo: '青に変化', tlMon: '信号監視', tlGps: '信号',
-          camCritTitle: (r) => `急減速！20m手前まで残 ${r}m`,
-          camCritSub: (s, l, n) => `現在 ${s} km/h → 制限 ${l}（減速必要 ${n}m）`,
-          camCritBadge: (d) => `残 ${d}m`,
-          camWarnTitle: (d) => `オービス ${d}m｜20m手前で減速可`,
-          camWarnSub: (l, n, r) => `${l} km/hへ減速（必要 ${n}m / 残 ${r}m）`,
-          camWarnBadge: '減速注意',
-          camSafeTitle: (d) => `オービス ${d}m｜20m手前安全通過`,
-          camSafeBadge: '安全通過',
+          camCritTitle: (r, d) => `急減速！${d}m`,
+          camCritSub: (s, l, n) => `${s} → 制限 ${l}`,
+          camCritBadge: (d) => `${d}m`,
+          camWarnTitle: (d) => `オービス ${d}m`,
+          camWarnSub: (l, n, r) => `制限 ${l} · 残 ${r}m`,
+          camWarnBadge: '減速',
+          camSafeTitle: (d) => `オービス ${d}m · 安全`,
+          camSafeBadge: '通過',
           testPhrase: '音声テスト完了。150メートル先にオービス、20メートル手前で60キロに減速してください。',
           speakOver: (l) => `速度超過です。制限速度は${l}キロです`,
           speakCrit: (d, l) => `急減速してください。${d}メートル先にオービス、制限${l}キロ`,
@@ -572,32 +612,56 @@
 
       const THEMES = {
         comfort: {
-          bg: '#0b0d10',
-          ring: 'border-[#2b313d]',
+          bg: 'linear-gradient(180deg, #10141b 0%, #090b0f 100%)',
+          cardBg: '#141922',
+          ring: 'border-emerald-500/35',
           num: 'text-zinc-100',
-          arc: '#34d399'
+          arc: '#34d399',
+          track: 'rgba(52,211,153,0.12)',
+          italic: false,
+          tlScale: '1',
+          dim: '1'
         },
         jam: {
-          bg: '#120e09',
-          ring: 'border-amber-500/40',
-          num: 'text-amber-50',
-          arc: '#f59e0b'
+          bg: 'linear-gradient(180deg, #1e150b 0%, #0d0905 100%)',
+          cardBg: '#1b150e',
+          ring: 'border-amber-500/55',
+          num: 'text-amber-100',
+          arc: '#f59e0b',
+          track: 'rgba(245,158,11,0.16)',
+          italic: false,
+          tlScale: '1.14',
+          dim: '1'
         },
         night: {
-          bg: '#030304',
-          ring: 'border-zinc-800',
-          num: 'text-zinc-300',
-          arc: '#f43f5e'
+          bg: '#000000',
+          cardBg: '#08090b',
+          ring: 'border-rose-900/50',
+          num: 'text-rose-300',
+          arc: '#e11d48',
+          track: 'rgba(225,29,72,0.12)',
+          italic: false,
+          tlScale: '0.95',
+          dim: '0.82'
         },
         sport: {
-          bg: '#090d14',
-          ring: 'border-sky-500/40',
-          num: 'text-white',
-          arc: '#38bdf8'
+          bg: 'linear-gradient(180deg, #0b1322 0%, #05070c 100%)',
+          cardBg: '#101726',
+          ring: 'border-sky-400/65',
+          num: 'text-white italic',
+          arc: '#0ea5e9',
+          track: 'rgba(14,165,233,0.18)',
+          italic: true,
+          tlScale: '1',
+          dim: '1'
         }
       };
 
       try {
+        try {
+          const pl = JSON.parse(localStorage.getItem('tw_hud_pass_logs') || '[]');
+          if (Array.isArray(pl)) st.passLogs = pl;
+        } catch (e) {}
         const savedApi = localStorage.getItem('tw_hud_api');
         if (savedApi && savedApi.startsWith('https://')) st.apiUrl = savedApi;
         const syncedCams = JSON.parse(localStorage.getItem('tw_hud_cams_synced') || 'null');
@@ -622,6 +686,66 @@
         el.textContent = msg;
         box.appendChild(el);
         setTimeout(() => el.remove(), 3200);
+      }
+
+      function addPassLog(label, spd, lim, mode) {
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const ss = String(now.getSeconds()).padStart(2, '0');
+        const safe = (lim === null || spd === null) ? null : spd <= lim;
+        st.passLogs.unshift({
+          time: `${hh}:${mm}:${ss}`,
+          label: label || '一般路段',
+          spd: spd !== null ? Math.round(spd) : null,
+          lim: lim !== null ? lim : null,
+          safe,
+          mode: mode || 'auto'
+        });
+        st.passLogs = st.passLogs.slice(0, 30);
+        try { localStorage.setItem('tw_hud_pass_logs', JSON.stringify(st.passLogs)); } catch (e) {}
+      }
+
+      function renderPassLogs() {
+        const box = document.getElementById('log-list');
+        if (!box) return;
+        box.innerHTML = '';
+        if (!st.passLogs || st.passLogs.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'text-zinc-500 text-center py-6';
+          empty.textContent = '尚無通過紀錄（通過測速點 25m 內自動記錄，或點擊上方「記車速」手動記錄）';
+          box.appendChild(empty);
+          return;
+        }
+        st.passLogs.forEach((item) => {
+          const row = document.createElement('div');
+          row.className = 'oem-group p-3 flex items-center justify-between gap-2';
+          const left = document.createElement('div');
+          left.className = 'min-w-0';
+          const title = document.createElement('div');
+          title.className = 'font-semibold text-zinc-100 truncate';
+          title.textContent = item.label;
+          const meta = document.createElement('div');
+          meta.className = 'text-[11px] text-zinc-400 mt-0.5';
+          meta.textContent = `${item.time} · ${item.mode === 'manual' ? '手動紀錄' : '通過測速點'}`;
+          left.appendChild(title);
+          left.appendChild(meta);
+
+          const right = document.createElement('div');
+          right.className = 'text-right shrink-0';
+          const spdTxt = document.createElement('div');
+          spdTxt.className = 'font-bold text-sm tabular-nums ' + (item.safe === false ? 'text-rose-400' : item.safe === true ? 'text-emerald-400' : 'text-zinc-200');
+          spdTxt.textContent = `${item.spd !== null ? item.spd : '--'} / ${item.lim !== null ? item.lim : '--'}`;
+          const badge = document.createElement('div');
+          badge.className = 'text-[10px] font-semibold ' + (item.safe === false ? 'text-rose-400' : item.safe === true ? 'text-emerald-400' : 'text-zinc-400');
+          badge.textContent = item.safe === false ? '超速' : item.safe === true ? '未超速安全' : '無速限資料';
+          right.appendChild(spdTxt);
+          right.appendChild(badge);
+
+          row.appendChild(left);
+          row.appendChild(right);
+          box.appendChild(row);
+        });
       }
 
       function hav(a1, o1, a2, o2) {
@@ -714,7 +838,7 @@
           [0, 0.16].forEach((off) => {
             const o = actx.createOscillator(), g = actx.createGain();
             o.frequency.setValueAtTime(freq, now + off);
-            g.gain.setValueAtTime(0.08, now + off);
+            g.gain.setValueAtTime(0.16 * (st.soundVol || 0.8), now + off);
             g.gain.exponentialRampToValueAtTime(0.001, now + off + 0.12);
             o.connect(g); g.connect(actx.destination);
             o.start(now + off); o.stop(now + off + 0.13);
@@ -728,7 +852,7 @@
           if (!('speechSynthesis' in window)) return;
           window.speechSynthesis.cancel();
           const u = new SpeechSynthesisUtterance(txt);
-          u.lang = st.lang || 'zh-TW'; u.rate = st.voiceRate || 1.1;
+          u.lang = st.lang || 'zh-TW'; u.rate = st.voiceRate || 1.1; u.volume = st.soundVol || 0.8;
           window.speechSynthesis.speak(u);
         } catch (e) {}
       }
@@ -984,7 +1108,17 @@
         }
 
         // Priority for Speed Limit: nearest verified speed camera (< 850m) > current OSM road maxspeed
-        const rawLim = (nearCam && minD < 850 && nearCam.limit) ? nearCam.limit : st.roadLimit;
+        if (st.roadName && st.rememberedRoadName && st.roadName !== st.rememberedRoadName) {
+          st.rememberedRoadName = null;
+          st.rememberedRoadLimit = null;
+        }
+        if (nearCam && minD < 850 && nearCam.limit && st.roadName) {
+          st.rememberedRoadName = st.roadName;
+          st.rememberedRoadLimit = nearCam.limit;
+        }
+        const rawLim = (nearCam && minD < 850 && nearCam.limit)
+          ? nearCam.limit
+          : (st.roadLimit || (st.roadName === st.rememberedRoadName ? st.rememberedRoadLimit : null));
         const limit = rawLim ? Math.min(vp.cap, rawLim) : null;
         const speed = (st.gpsReady && st.gpsSpeed !== null) ? Math.round(st.gpsSpeed) : null;
         const over = limit !== null && speed !== null && speed > limit;
@@ -1034,14 +1168,14 @@
           const needDecelDist = curKmh > effCamLimit
             ? (vMs * vp.react) + ((vMs * vMs - vLimMs * vLimMs) / (2 * vp.decel))
             : 0;
-          const warnTriggerDist = Math.max(needDecelDist + 45, vMs * 4.5, 110);
+          const warnTriggerDist = Math.max(needDecelDist + 15, 45);
 
           if (curKmh > effCamLimit && distTo20m < needDecelDist && minD >= 15) {
             camAlertLevel = 'critical';
             banner.className = 'rounded-2xl px-4 py-2.5 border-2 border-yellow-300 bg-red-600/95 text-white flex items-center justify-between gap-3 shrink-0 urgent-banner';
-            document.getElementById('cam-alert-icon').textContent = '🚨';
+            document.getElementById('cam-alert-icon').textContent = '!';
             const tC = I18N[st.lang] || I18N['zh-TW'];
-            document.getElementById('cam-alert-title').textContent = tC.camCritTitle(Math.max(0, Math.round(distTo20m)));
+            document.getElementById('cam-alert-title').textContent = tC.camCritTitle(Math.max(0, Math.round(distTo20m)), Math.round(minD));
             document.getElementById('cam-alert-sub').textContent = tC.camCritSub(Math.round(curKmh), effCamLimit, Math.round(needDecelDist));
             document.getElementById('cam-alert-badge').className = 'px-2.5 py-1 rounded-xl text-xs font-black bg-yellow-300 text-red-950';
             document.getElementById('cam-alert-badge').textContent = tC.camCritBadge(Math.round(minD));
@@ -1049,18 +1183,18 @@
             camAlertLevel = 'warn';
             const tC = I18N[st.lang] || I18N['zh-TW'];
             banner.className = 'rounded-2xl px-4 py-2.5 border-2 border-white bg-amber-500 text-slate-950 flex items-center justify-between gap-3 shrink-0 shadow-2xl';
-            document.getElementById('cam-alert-icon').textContent = '⚠️';
+            document.getElementById('cam-alert-icon').textContent = '!';
             document.getElementById('cam-alert-title').textContent = tC.camWarnTitle(Math.round(minD));
             document.getElementById('cam-alert-sub').textContent = tC.camWarnSub(effCamLimit, Math.round(needDecelDist), Math.round(distTo20m));
             document.getElementById('cam-alert-badge').className = 'px-2.5 py-1 rounded-xl text-xs font-black bg-slate-950 text-amber-300';
             document.getElementById('cam-alert-badge').textContent = tC.camWarnBadge;
-          } else if (minD <= Math.max(150, vMs * 5)) {
+          } else if (minD <= 120) {
             camAlertLevel = 'safe';
             const tC = I18N[st.lang] || I18N['zh-TW'];
             banner.className = 'rounded-2xl px-4 py-2 border border-emerald-400/70 bg-emerald-950/90 text-emerald-100 flex items-center justify-between gap-3 shrink-0';
-            document.getElementById('cam-alert-icon').textContent = '📷';
+            document.getElementById('cam-alert-icon').textContent = '✓';
             document.getElementById('cam-alert-title').textContent = tC.camSafeTitle(Math.round(minD));
-            document.getElementById('cam-alert-sub').textContent = `${nearCam.name} (${effCamLimit} km/h)`;
+            document.getElementById('cam-alert-sub').textContent = `限 ${effCamLimit} km/h`;
             document.getElementById('cam-alert-badge').className = 'px-2.5 py-1 rounded-xl text-xs font-black bg-emerald-400 text-slate-950';
             document.getElementById('cam-alert-badge').textContent = tC.camSafeBadge;
           } else {
@@ -1097,17 +1231,42 @@
         bodyEl.classList.toggle('cam-warn-glow', !over && camAlertLevel === 'warn');
 
         const tSpeak = I18N[st.lang] || I18N['zh-TW'];
-        if ((over || camAlertLevel === 'critical') && now - st.lastBeep >= 4) {
-          beep(980);
-          speak(camAlertLevel === 'critical'
-            ? tSpeak.speakCrit(Math.round(minD), nearCam.limit || limit)
-            : tSpeak.speakOver(limit));
-          st.lastBeep = now;
-        } else if (camAlertLevel === 'warn' && now - st.lastBeep >= 5) {
-          beep(760);
-          speak(tSpeak.speakWarn(Math.round(minD), nearCam.limit || limit));
+        const camKey = nearCam ? `${nearCam.name}_${nearCam.lat.toFixed(4)}` : null;
+        if (nearCam && minD <= 25 && speed !== null && st.autoLoggedCamKey !== camKey) {
+          const effLim = nearCam.limit ? Math.min(vp.cap, nearCam.limit) : limit;
+          addPassLog(nearCam.name, speed, effLim, 'auto');
+          st.autoLoggedCamKey = camKey;
+        }
+        if (!nearCam || minD > 120) st.autoLoggedCamKey = null;
+        if (camAlertLevel === 'none' || camAlertLevel === 'safe') {
+          if (!nearCam || minD > 160) {
+            st.announcedCamKey = null;
+            st.announcedCamLevel = null;
+          }
+        }
+        if (camAlertLevel === 'critical') {
+          if (st.announcedCamKey !== camKey || st.announcedCamLevel !== 'critical') {
+            beep(980);
+            speak(tSpeak.speakCrit(Math.round(minD), nearCam.limit || limit));
+            st.announcedCamKey = camKey;
+            st.announcedCamLevel = 'critical';
+            st.lastBeep = now;
+          }
+        } else if (camAlertLevel === 'warn') {
+          if (st.announcedCamKey !== camKey) {
+            beep(760);
+            speak(tSpeak.speakWarn(Math.round(minD), nearCam.limit || limit));
+            st.announcedCamKey = camKey;
+            st.announcedCamLevel = 'warn';
+            st.lastBeep = now;
+          }
+        } else if (over && speed >= limit + 2 && st.overMode !== 'silent' && now - st.lastOverSpeak >= 20) {
+          if (st.overMode === 'both' || st.overMode === 'beep') beep(880);
+          if (st.overMode === 'both' || st.overMode === 'voice') speak(tSpeak.speakOver(limit));
+          st.lastOverSpeak = now;
           st.lastBeep = now;
         }
+        if (!over) st.lastOverSpeak = 0;
 
         // Traffic Light Card: Auto-hide completely when on Highway or no traffic lights nearby
         const tlCardEl = document.getElementById('tl-card');
@@ -1251,6 +1410,8 @@
         const ui = JSON.parse(localStorage.getItem('tw_hud_ui') || '{}');
         if (ui.lang && I18N[ui.lang]) st.lang = ui.lang;
         if (ui.voiceRate) st.voiceRate = ui.voiceRate;
+        if (ui.soundVol) st.soundVol = ui.soundVol;
+        if (ui.overMode) st.overMode = ui.overMode;
         if (typeof ui.hudMirror === 'boolean') st.hudMirror = ui.hudMirror;
         if (ui.hudScale) st.hudScale = ui.hudScale;
         if (ui.hudTheme && THEMES[ui.hudTheme]) st.hudTheme = ui.hudTheme;
@@ -1261,7 +1422,7 @@
       function saveUI() {
         try {
           localStorage.setItem('tw_hud_ui', JSON.stringify({
-            lang: st.lang, voiceRate: st.voiceRate, hudMirror: st.hudMirror,
+            lang: st.lang, voiceRate: st.voiceRate, soundVol: st.soundVol, overMode: st.overMode, hudMirror: st.hudMirror,
             hudScale: st.hudScale, hudTheme: st.hudTheme, tlPos: st.tlPos, showTlSec: st.showTlSec
           }));
         } catch (e) {}
@@ -1270,6 +1431,10 @@
       function applyUI() {
         const t = I18N[st.lang] || I18N['zh-TW'];
         document.getElementById('btn-settings').textContent = t.setBtn;
+        if (t.logBtn) document.getElementById('btn-log-speed').textContent = t.logBtn;
+        if (t.logsBtn) document.getElementById('btn-view-logs').textContent = t.logsBtn;
+        if (t.logTitle) document.getElementById('log-title').textContent = t.logTitle;
+        if (t.clearLogs) document.getElementById('btn-clear-logs').textContent = t.clearLogs;
         document.getElementById('btn-test-panel').textContent = t.testBtn;
         document.getElementById('btn-open-manual').textContent = t.manualBtn;
         document.getElementById('set-title').textContent = t.setTitle;
@@ -1300,6 +1465,17 @@
         document.getElementById('lbl-sim-dist').textContent = t.simDist;
         document.getElementById('btn-sim-toggle').textContent = st.simMode ? t.simOn : t.simOff;
         document.getElementById('voice-rate').value = st.voiceRate;
+        document.getElementById('sound-vol').value = st.soundVol;
+        document.getElementById('lbl-vol').innerHTML = `${t.lblVol} <span id="vol-val" class="text-zinc-100 font-bold">${Math.round(st.soundVol * 100)}%</span>`;
+        document.getElementById('lbl-over-mode').textContent = t.lblOverMode;
+        document.querySelectorAll('.om-btn').forEach((b) => {
+          const k = b.getAttribute('data-om');
+          const active = k === st.overMode;
+          if (t.omModes && t.omModes[k]) b.textContent = t.omModes[k];
+          b.className = active
+            ? 'om-btn py-1.5 px-1 rounded-lg bg-zinc-200 text-zinc-900 text-[10px] font-bold'
+            : 'om-btn py-1.5 px-1 rounded-lg bg-[#222732] text-zinc-300 text-[10px] font-semibold';
+        });
 
         document.querySelectorAll('.r-btn').forEach((b) => {
           const k = b.getAttribute('data-r');
@@ -1326,8 +1502,14 @@
         document.body.style.background = th.bg;
         const sc = document.getElementById('speed-card');
         sc.className = `oem-card relative w-64 h-64 sm:w-80 sm:h-80 rounded-full border-2 flex flex-col items-center justify-center text-center transition-all overflow-hidden ${th.ring}`;
+        sc.style.background = th.cardBg;
+        sc.style.opacity = th.dim;
+        const trk = document.getElementById('gauge-track');
+        if (trk) trk.setAttribute('stroke', th.track);
+        tlCard.style.transform = `${st.hudMirror ? 'scaleX(-1) ' : ''}scale(${th.tlScale})`;
+        tlCard.style.transformOrigin = st.tlPos === 'bl' ? 'bottom left' : 'bottom right';
         document.getElementById('hud-gauge-wrap').style.transform = `scale(${st.hudScale})`;
-        document.getElementById('hud-speed').className = `text-7xl sm:text-8xl font-black tabular-nums tracking-tighter leading-none ${th.num}`;
+        document.getElementById('hud-speed').className = `text-7xl sm:text-8xl font-extrabold tabular-nums tracking-tight leading-none ${th.num}`;
 
         document.querySelectorAll('.theme-btn').forEach((b) => {
           const k = b.getAttribute('data-theme');
@@ -1375,6 +1557,25 @@
         applyUI();
       });
 
+      document.getElementById('sound-vol').addEventListener('input', function () {
+        st.soundVol = parseFloat(this.value) || 0.8;
+        saveUI();
+        applyUI();
+      });
+
+      document.querySelectorAll('.om-btn').forEach((b) => {
+        b.addEventListener('click', () => {
+          st.overMode = b.getAttribute('data-om') || 'both';
+          saveUI();
+          applyUI();
+          unlockAudio();
+          const t = I18N[st.lang] || I18N['zh-TW'];
+          if (st.overMode === 'both') { beep(880); speak(t.speakOver(60)); }
+          else if (st.overMode === 'beep') { beep(880); }
+          else if (st.overMode === 'voice') { speak(t.speakOver(60)); }
+        });
+      });
+
       document.querySelectorAll('.lang-btn').forEach((b) => {
         b.addEventListener('click', () => {
           st.lang = b.getAttribute('data-lang');
@@ -1418,6 +1619,32 @@
         });
       });
 
+      const lm = document.getElementById('log-modal');
+      document.getElementById('btn-view-logs').addEventListener('click', () => {
+        renderPassLogs();
+        lm.classList.remove('hidden');
+      });
+      document.getElementById('close-logs').addEventListener('click', () => lm.classList.add('hidden'));
+      document.getElementById('btn-clear-logs').addEventListener('click', () => {
+        st.passLogs = [];
+        try { localStorage.removeItem('tw_hud_pass_logs'); } catch (e) {}
+        renderPassLogs();
+        toast('已清空通過紀錄', 'ok');
+      });
+      document.getElementById('btn-log-speed').addEventListener('click', () => {
+        const curSpd = (st.gpsReady && st.gpsSpeed !== null) ? Math.round(st.gpsSpeed) : null;
+        if (curSpd === null) {
+          toast('尚未取得車速，無法記錄', 'warn');
+          return;
+        }
+        const curLim = parseInt(document.getElementById('hud-limit').textContent, 10);
+        const effLim = Number.isNaN(curLim) ? null : curLim;
+        const lbl = st.roadName || '手動記錄點';
+        addPassLog(lbl, curSpd, effLim, 'manual');
+        const statusTxt = effLim === null ? '已記錄' : (curSpd <= effLim ? '未超速安全' : '已超速');
+        toast(`已記錄 ${curSpd} km/h${effLim !== null ? `（速限 ${effLim} · ${statusTxt}）` : ''}`, effLim !== null && curSpd > effLim ? 'err' : 'ok');
+      });
+
       const mm = document.getElementById('manual-modal');
       document.getElementById('btn-open-manual').addEventListener('click', () => mm.classList.remove('hidden'));
       document.getElementById('close-manual').addEventListener('click', () => mm.classList.add('hidden'));
@@ -1445,7 +1672,7 @@
             toast(`已自動更新共 ${CAMERAS.length} 支測速照相`, 'ok');
             renderHUD();
           } else {
-            toast('Worker 尚未設定 CAMERAS_CSV_URL 變數', 'warn');
+            toast(d && d.error === 'CAMERAS_CSV_URL_NOT_SET' ? 'Worker 尚未設定 CAMERAS_CSV_URL 變數' : `更新未成功 (${(d && d.error) || '回傳 0 筆測速點，請確認為警政署 CSV 網址'})`, 'warn');
           }
         } catch (e) {
           toast('更新失敗，請檢查網路或 Worker 網址', 'err');
