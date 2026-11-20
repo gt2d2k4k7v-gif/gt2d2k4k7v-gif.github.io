@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>台灣全車種即時行車 HUD v1.16</title>
+  <title>台灣全車種即時行車 HUD v1.18</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet" />
@@ -41,7 +41,7 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 0 0 4px rgba(11, 13, 16, 0.85), 0 10px 24px rgba(0, 0, 0, 0.65);
     }
     .overspeed-glow {
       box-shadow: inset 0 0 80px rgba(220, 38, 38, 0.65);
@@ -106,15 +106,17 @@
     <div id="hud-gauge-wrap" class="relative flex items-center justify-center landscape-scale transition-transform">
       <section id="speed-card" class="oem-card relative w-64 h-64 sm:w-80 sm:h-80 rounded-full border-2 border-[#2a303c] flex flex-col items-center justify-center text-center transition-colors overflow-hidden">
         <svg viewBox="0 0 220 220" class="absolute inset-0 w-full h-full pointer-events-none">
-          <circle id="gauge-track" cx="110" cy="110" r="96" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="8" stroke-dasharray="452 604" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(135 110 110)"/>
-          <circle cx="110" cy="110" r="85" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1.5" stroke-dasharray="1.5 11" transform="rotate(135 110 110)"/>
-          <circle id="gauge-arc" cx="110" cy="110" r="96" fill="none" stroke="#e4e4e7" stroke-width="8" stroke-dasharray="452 604" stroke-dashoffset="452" stroke-linecap="round" transform="rotate(135 110 110)"/>
+          <circle cx="110" cy="110" r="104" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <circle id="gauge-track" cx="110" cy="110" r="95" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10" stroke-dasharray="448 604" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(135 110 110)"/>
+          <circle cx="110" cy="110" r="82" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="2.5" stroke-dasharray="2 14.5" transform="rotate(135 110 110)"/>
+          <circle cx="110" cy="110" r="76" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+          <circle id="gauge-arc" cx="110" cy="110" r="95" fill="none" stroke="#34d399" stroke-width="10" stroke-dasharray="448 604" stroke-dashoffset="448" stroke-linecap="round" transform="rotate(135 110 110)"/>
         </svg>
         <div class="relative z-10 flex flex-col items-center justify-center px-5">
           <span id="over-pill" class="hidden mb-1 px-2.5 py-0.5 rounded bg-red-600 text-white text-[11px] font-bold tracking-wider">超速</span>
           <span id="hud-speed" class="text-7xl sm:text-8xl font-extrabold tabular-nums tracking-tight text-white leading-none">--</span>
           <span class="text-xs font-semibold text-zinc-400 tracking-widest mt-1.5">KM/H</span>
-          <div id="hud-road-chip" class="mt-2.5 text-[11px] font-medium text-zinc-400 max-w-[175px] sm:max-w-[215px] truncate">等待定位</div>
+          <div id="hud-road-chip" class="mt-3 px-3 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-[11px] font-medium text-zinc-300 max-w-[175px] sm:max-w-[215px] truncate">等待定位</div>
         </div>
       </section>
 
@@ -249,13 +251,12 @@
       <!-- Interface Mode & Layout -->
       <div class="oem-group p-3 flex flex-col gap-2.5">
         <div id="lbl-ui" class="text-xs font-semibold text-zinc-300">顯示與介面模式</div>
-        <div class="flex flex-col gap-1.5 text-xs">
+        <div class="flex items-center justify-between gap-2 text-xs">
           <span id="lbl-theme" class="text-zinc-400 font-medium">介面模式</span>
-          <div class="grid grid-cols-2 gap-1.5">
-            <button data-theme="comfort" type="button" class="theme-btn py-1.5 px-2 rounded-lg bg-zinc-200 text-zinc-900 text-[11px] font-bold">舒服模式</button>
-            <button data-theme="jam" type="button" class="theme-btn py-1.5 px-2 rounded-lg bg-[#222732] text-zinc-300 text-[11px] font-semibold">塞車模式</button>
-            <button data-theme="night" type="button" class="theme-btn py-1.5 px-2 rounded-lg bg-[#222732] text-zinc-300 text-[11px] font-semibold">夜間護眼</button>
-            <button data-theme="sport" type="button" class="theme-btn py-1.5 px-2 rounded-lg bg-[#222732] text-zinc-300 text-[11px] font-semibold">運動模式</button>
+          <div class="grid grid-cols-3 gap-1.5">
+            <button data-theme="comfort" type="button" class="theme-btn py-1.5 px-3 rounded-lg bg-zinc-200 text-zinc-900 text-[11px] font-bold">日常</button>
+            <button data-theme="night" type="button" class="theme-btn py-1.5 px-3 rounded-lg bg-[#222732] text-zinc-300 text-[11px] font-semibold">夜間</button>
+            <button data-theme="sport" type="button" class="theme-btn py-1.5 px-3 rounded-lg bg-[#222732] text-zinc-300 text-[11px] font-semibold">競速</button>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2 text-xs">
@@ -319,7 +320,7 @@
       <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-white/[0.06] text-xs">
         <div class="flex items-center gap-1.5">
           <span id="cam-count-tag" class="text-zinc-400 font-medium">載入中...</span>
-          <span class="text-[10px] font-semibold text-zinc-500">v1.16</span>
+          <span class="text-[10px] font-semibold text-zinc-500">v1.18</span>
         </div>
         <div class="flex items-center gap-1.5">
           <button id="btn-update-cams" type="button" class="px-2.5 py-1.5 rounded-lg bg-zinc-200 hover:bg-white text-zinc-900 font-bold">更新測速資料庫</button>
@@ -365,7 +366,7 @@
 
       <!-- Guide 2: 20m Safe-Pass Physics Illustration -->
       <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-white/10 flex flex-col gap-2">
-        <div class="text-xs font-black text-amber-300">2. 測速照相前 20 公尺安全減速警告</div>
+        <div class="text-xs font-black text-amber-300">2. 測速照相前 10 公尺安全減速警告</div>
         <svg viewBox="0 0 360 120" class="w-full rounded-xl bg-slate-950 border border-white/10">
           <line x1="20" y1="88" x2="340" y2="88" stroke="#475569" stroke-width="3" stroke-dasharray="6 4"/>
           <rect x="28" y="64" width="38" height="20" rx="5" fill="#22d3ee"/>
@@ -373,14 +374,14 @@
           <path d="M72 74 L218 74" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="4 3"/>
           <text x="145" y="66" fill="#fcd34d" font-size="8" text-anchor="middle" font-weight="bold">反應 + 依車種煞車減速距離</text>
           <line x1="225" y1="35" x2="225" y2="96" stroke="#10b981" stroke-width="2" stroke-dasharray="3 2"/>
-          <text x="225" y="28" fill="#34d399" font-size="8" text-anchor="middle" font-weight="bold">前20m安全線</text>
+          <text x="225" y="28" fill="#34d399" font-size="8" text-anchor="middle" font-weight="bold">前10m安全線</text>
           <path d="M230 74 L298 74" stroke="#10b981" stroke-width="2"/>
-          <text x="264" y="66" fill="#6ee7b7" font-size="8" text-anchor="middle">20 m</text>
+          <text x="264" y="66" fill="#6ee7b7" font-size="8" text-anchor="middle">10 m</text>
           <rect x="302" y="50" width="26" height="34" rx="4" fill="#e11d48"/>
           <circle cx="315" cy="64" r="6" fill="#09090b" stroke="#ffffff" stroke-width="1.5"/>
           <text x="315" y="106" fill="#fda4af" font-size="8" text-anchor="middle" font-weight="bold">測速照相</text>
         </svg>
-        <p class="text-[11px] text-slate-300 leading-relaxed">系統依你選擇的車種減速度與當前 GPS 車速，即時計算能否於「照相前 20 公尺」減速至速限。亮起<span class="text-amber-300 font-bold">琥珀色</span>代表現在減速可安全通過；閃爍<span class="text-rose-400 font-bold">紅色</span>代表剩餘距離不足，請立即煞車。</p>
+        <p class="text-[11px] text-slate-300 leading-relaxed">系統依你選擇的車種減速度與當前 GPS 車速，即時計算能否於「照相前 10 公尺」減速至速限。亮起<span class="text-amber-300 font-bold">琥珀色</span>代表現在減速可安全通過；閃爍<span class="text-rose-400 font-bold">紅色</span>代表剩餘距離不足，請立即煞車。</p>
       </div>
 
       <!-- Guide 3: GPS Traffic Light & Mirror HUD Illustration -->
@@ -509,7 +510,7 @@
           voiceOn: '語音：開', voiceOff: '語音：關',
           lblUi: '顯示與介面模式', lblTheme: '介面模式', lblSize: '車速錶大小',
           sizes: ['小', '中', '大'],
-          modes: { comfort: '舒服模式', jam: '塞車模式', night: '夜間護眼', sport: '運動模式' },
+          modes: { comfort: '日常', night: '夜間', sport: '競速' },
           mirrorOn: '前擋鏡像：開', mirrorOff: '前擋鏡像：關',
           tlBr: '紅綠燈：右下', tlBl: '紅綠燈：左下',
           tlSecOn: '紅綠燈倒數：開', tlSecOff: '紅綠燈倒數：關',
@@ -524,17 +525,17 @@
           tlRed: '紅燈停等', tlRedCd: '紅燈倒數', tlYel: '黃燈變換', tlSoonGrn: '即將轉綠',
           tlGrn: '綠燈通行', tlGo: '剛轉綠燈', tlMon: '號誌監測', tlGps: '號誌',
           camCritTitle: (r, d) => `急減速！測速 ${d}m`,
-          camCritSub: (s, l, n) => `${s} → 限 ${l}（前20m）`,
+          camCritSub: (s, l, n) => `${s} → 限 ${l}（前10m）`,
           camCritBadge: (d) => `距 ${d}m`,
           camWarnTitle: (d) => `測速 ${d}m · 請減速`,
           camWarnSub: (l, n, r) => `限 ${l} · 剩 ${r}m`,
           camWarnBadge: '減速',
           camSafeTitle: (d) => `測速 ${d}m · 安全`,
           camSafeBadge: '通過',
-          testPhrase: '試音成功，前方 150 公尺測速照相，請於前 20 公尺減速至 60 公里',
+          testPhrase: '試音成功，前方 150 公尺測速照相，請於前 10 公尺減速至 60 公里',
           speakOver: (l) => `注意，您已超速，速限 ${l} 公里`,
           speakCrit: (d, l) => `緊急減速，前方 ${d} 公尺測速照相，速限 ${l} 公里`,
-          speakWarn: (d, l) => `前方 ${d} 公尺測速照相，請於前 20 公尺減速至 ${l} 公里`
+          speakWarn: (d, l) => `前方 ${d} 公尺測速照相，請於前 10 公尺減速至 ${l} 公里`
         },
         'en-US': {
           setBtn: 'Settings', logBtn: 'Log Speed', logsBtn: 'Logs', logTitle: 'Passing Speed Logs', clearLogs: 'Clear', testBtn: 'Test', manualBtn: 'Guide',
@@ -544,7 +545,7 @@
           voiceOn: 'Voice: ON', voiceOff: 'Voice: OFF',
           lblUi: 'Display & Mode', lblTheme: 'Interface Mode', lblSize: 'Gauge Size',
           sizes: ['S', 'M', 'L'],
-          modes: { comfort: 'Comfort', jam: 'Traffic Jam', night: 'Night Care', sport: 'Sport' },
+          modes: { comfort: 'Daily', night: 'Night', sport: 'Sport' },
           mirrorOn: 'Mirror HUD: ON', mirrorOff: 'Mirror HUD: OFF',
           tlBr: 'Signal: Bottom-R', tlBl: 'Signal: Bottom-L',
           tlSecOn: 'Signal Timer: ON', tlSecOff: 'Signal Timer: OFF',
@@ -567,10 +568,10 @@
           camWarnBadge: 'SLOW',
           camSafeTitle: (d) => `Cam ${d}m · Safe`,
           camSafeBadge: 'PASS',
-          testPhrase: 'Audio test ready. Speed camera in 150 meters, slow down to 60 before 20 meters.',
+          testPhrase: 'Audio test ready. Speed camera in 150 meters, slow down to 60 before 10 meters.',
           speakOver: (l) => `Overspeed warning, limit ${l}`,
           speakCrit: (d, l) => `Brake now, speed camera in ${d} meters, limit ${l}`,
-          speakWarn: (d, l) => `Speed camera in ${d} meters, slow to ${l} before 20 meters`
+          speakWarn: (d, l) => `Speed camera in ${d} meters, slow to ${l} before 10 meters`
         },
         'ja-JP': {
           setBtn: '設定', testBtn: 'テスト', logBtn: '速度記録', logsBtn: '履歴', logTitle: '通過速度履歴', clearLogs: '消去', manualBtn: 'ガイド',
@@ -580,7 +581,7 @@
           voiceOn: '音声：ON', voiceOff: '音声：OFF',
           lblUi: '画面モード・表示設定', lblTheme: '画面モード', lblSize: 'メーターサイズ',
           sizes: ['小', '中', '大'],
-          modes: { comfort: '快適モード', jam: '渋滞モード', night: '夜間モード', sport: 'スポーツ' },
+          modes: { comfort: '日常', night: '夜間', sport: 'スポーツ' },
           mirrorOn: 'ミラーHUD：ON', mirrorOff: 'ミラーHUD：OFF',
           tlBr: '信号：右下', tlBl: '信号：左下',
           tlSecOn: '信号タイマー：ON', tlSecOff: '信号タイマー：OFF',
@@ -603,55 +604,41 @@
           camWarnBadge: '減速',
           camSafeTitle: (d) => `オービス ${d}m · 安全`,
           camSafeBadge: '通過',
-          testPhrase: '音声テスト完了。150メートル先にオービス、20メートル手前で60キロに減速してください。',
+          testPhrase: '音声テスト完了。150メートル先にオービス、10メートル手前で60キロに減速してください。',
           speakOver: (l) => `速度超過です。制限速度は${l}キロです`,
           speakCrit: (d, l) => `急減速してください。${d}メートル先にオービス、制限${l}キロ`,
-          speakWarn: (d, l) => `${d}メートル先にオービス。20メートル手前で${l}キロに減速`
+          speakWarn: (d, l) => `${d}メートル先にオービス。10メートル手前で${l}キロに減速`
         }
       };
 
       const THEMES = {
         comfort: {
-          bg: 'linear-gradient(180deg, #10141b 0%, #090b0f 100%)',
-          cardBg: '#141922',
-          ring: 'border-emerald-500/35',
-          num: 'text-zinc-100',
+          bg: 'radial-gradient(circle at 50% 20%, #152229 0%, #0a0d12 75%)',
+          cardBg: 'radial-gradient(circle at 50% 30%, #1c242f 0%, #10141c 100%)',
+          ring: 'border-emerald-400/40 shadow-[0_20px_60px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.08)]',
+          num: 'text-zinc-50',
           arc: '#34d399',
-          track: 'rgba(52,211,153,0.12)',
-          italic: false,
+          track: 'rgba(52,211,153,0.14)',
           tlScale: '1',
-          dim: '1'
-        },
-        jam: {
-          bg: 'linear-gradient(180deg, #1e150b 0%, #0d0905 100%)',
-          cardBg: '#1b150e',
-          ring: 'border-amber-500/55',
-          num: 'text-amber-100',
-          arc: '#f59e0b',
-          track: 'rgba(245,158,11,0.16)',
-          italic: false,
-          tlScale: '1.14',
           dim: '1'
         },
         night: {
           bg: '#000000',
-          cardBg: '#08090b',
-          ring: 'border-rose-900/50',
-          num: 'text-rose-300',
+          cardBg: 'radial-gradient(circle at 50% 35%, #110b0d 0%, #050507 100%)',
+          ring: 'border-rose-900/55 shadow-[0_18px_50px_rgba(0,0,0,0.9)]',
+          num: 'text-rose-200',
           arc: '#e11d48',
-          track: 'rgba(225,29,72,0.12)',
-          italic: false,
+          track: 'rgba(225,29,72,0.14)',
           tlScale: '0.95',
-          dim: '0.82'
+          dim: '0.85'
         },
         sport: {
-          bg: 'linear-gradient(180deg, #0b1322 0%, #05070c 100%)',
-          cardBg: '#101726',
-          ring: 'border-sky-400/65',
+          bg: 'radial-gradient(circle at 50% 20%, #0f1d36 0%, #05070c 75%)',
+          cardBg: 'radial-gradient(circle at 50% 30%, #162238 0%, #0b101b 100%)',
+          ring: 'border-sky-400/60 shadow-[0_20px_65px_rgba(14,165,233,0.18),inset_0_1px_0_rgba(255,255,255,0.1)]',
           num: 'text-white italic',
           arc: '#0ea5e9',
-          track: 'rgba(14,165,233,0.18)',
-          italic: true,
+          track: 'rgba(14,165,233,0.2)',
           tlScale: '1',
           dim: '1'
         }
@@ -1130,7 +1117,7 @@
 
         const arc = document.getElementById('gauge-arc');
         if (arc) {
-          const maxArc = 452;
+          const maxArc = 448;
           const pct = speed !== null ? Math.min(1, Math.max(0, speed / 140)) : 0;
           arc.setAttribute('stroke-dashoffset', String(Math.round(maxArc * (1 - pct))));
           const thObj = THEMES[st.hudTheme] || THEMES.comfort;
@@ -1164,28 +1151,28 @@
           const curKmh = st.gpsSpeed !== null ? st.gpsSpeed : 0;
           const vMs = curKmh / 3.6;
           const vLimMs = effCamLimit / 3.6;
-          const distTo20m = minD - 20;
+          const distTo10m = minD - 10;
           const needDecelDist = curKmh > effCamLimit
             ? (vMs * vp.react) + ((vMs * vMs - vLimMs * vLimMs) / (2 * vp.decel))
             : 0;
           const warnTriggerDist = Math.max(needDecelDist + 15, 45);
 
-          if (curKmh > effCamLimit && distTo20m < needDecelDist && minD >= 15) {
+          if (curKmh > effCamLimit && distTo10m < needDecelDist && minD >= 8) {
             camAlertLevel = 'critical';
             banner.className = 'rounded-2xl px-4 py-2.5 border-2 border-yellow-300 bg-red-600/95 text-white flex items-center justify-between gap-3 shrink-0 urgent-banner';
             document.getElementById('cam-alert-icon').textContent = '!';
             const tC = I18N[st.lang] || I18N['zh-TW'];
-            document.getElementById('cam-alert-title').textContent = tC.camCritTitle(Math.max(0, Math.round(distTo20m)), Math.round(minD));
+            document.getElementById('cam-alert-title').textContent = tC.camCritTitle(Math.max(0, Math.round(distTo10m)), Math.round(minD));
             document.getElementById('cam-alert-sub').textContent = tC.camCritSub(Math.round(curKmh), effCamLimit, Math.round(needDecelDist));
             document.getElementById('cam-alert-badge').className = 'px-2.5 py-1 rounded-xl text-xs font-black bg-yellow-300 text-red-950';
             document.getElementById('cam-alert-badge').textContent = tC.camCritBadge(Math.round(minD));
-          } else if (curKmh > effCamLimit && distTo20m <= warnTriggerDist) {
+          } else if (curKmh > effCamLimit && distTo10m <= warnTriggerDist) {
             camAlertLevel = 'warn';
             const tC = I18N[st.lang] || I18N['zh-TW'];
             banner.className = 'rounded-2xl px-4 py-2.5 border-2 border-white bg-amber-500 text-slate-950 flex items-center justify-between gap-3 shrink-0 shadow-2xl';
             document.getElementById('cam-alert-icon').textContent = '!';
             document.getElementById('cam-alert-title').textContent = tC.camWarnTitle(Math.round(minD));
-            document.getElementById('cam-alert-sub').textContent = tC.camWarnSub(effCamLimit, Math.round(needDecelDist), Math.round(distTo20m));
+            document.getElementById('cam-alert-sub').textContent = tC.camWarnSub(effCamLimit, Math.round(needDecelDist), Math.round(distTo10m));
             document.getElementById('cam-alert-badge').className = 'px-2.5 py-1 rounded-xl text-xs font-black bg-slate-950 text-amber-300';
             document.getElementById('cam-alert-badge').textContent = tC.camWarnBadge;
           } else if (minD <= 120) {
@@ -1204,7 +1191,7 @@
           document.getElementById('radar-dist').textContent = `${Math.round(minD)} m`;
           document.getElementById('radar-title').textContent = nearCam.name;
           document.getElementById('radar-sub').textContent = nearCam.limit
-            ? `速限 ${nearCam.limit}｜20m安全線 ${Math.max(0, Math.round(distTo20m))}m`
+            ? `速限 ${nearCam.limit}｜10m安全線 ${Math.max(0, Math.round(distTo10m))}m`
             : '速限未標示';
         } else {
           const activeHz = st.simHazard || (st.liveEvents && st.liveEvents[0]) || null;
